@@ -504,7 +504,7 @@ async function login(pin, silent) {
     const cached = LS.get('boot', null);
     if (/PIN|LOCKED/.test(m)) { LS.set('pin', ''); $('#lmsg').textContent = /LOCKED/.test(m) ? 'Too many wrong tries. Wait 10 minutes.' : 'Wrong PIN.'; return; }
     if (cached && LS.get('pin', '') === pin) A.boot = cached;        // offline: use the roster saved on this phone
-    else { $('#lmsg').textContent = navigator.onLine ? 'Cannot reach the Google Sheet. Check the Web app link and that it is deployed for “Anyone”.' : 'No internet. Sign in once while online.'; return; }
+    else { $('#lmsg').textContent = navigator.onLine ? 'Checking the connection…' : 'No internet. Sign in once while online.'; if (navigator.onLine) $('#lmsg').textContent = await diagnose(m); return; }
   }
   if (!A.boot.sched) A.boot.sched = {};
   const t = LS.get('recToday', null);
@@ -512,6 +512,20 @@ async function login(pin, silent) {
   applyQueue();
   $('#login').hidden = true; $('#app').hidden = false;
   go('scan'); pill(); sync(); refreshToday();
+}
+/* Finds out WHY the Google Sheet cannot be reached, and says what to do. */
+async function diagnose(detail) {
+  if (HAS_GAS || DEMO_MODE) return 'Could not open: ' + detail;
+  const tail = ' [' + API.slice(-12, -5) + '…]';
+  try {
+    const r = await fetch(API + '?ping=1', { redirect: 'follow' }), txt = await r.text();
+    let j = null; try { j = JSON.parse(txt); } catch (e) {}
+    if (j && j.ok && j.api >= 3) return 'The Sheet answers, but signing in failed (' + detail + '). Try again.';
+    if (/doGet|Index|<html/i.test(txt) || r.ok) return 'The web app is still running OLD code. In Apps Script: paste the newest Code.gs and Core.gs, Save, then Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy.' + tail;
+    return 'The web app link answered with an error (' + r.status + '). Check the link in config.js.' + tail;
+  } catch (e) {
+    return 'Google refused the connection. In Apps Script → Deploy → Manage deployments → Edit: “Who has access” must be exactly “Anyone” (not “Anyone with Google account”), and config.js must hold the link of THAT deployment.' + tail;
+  }
 }
 $('#go').onclick = () => login($('#pin').value.trim());
 $('#pin').onkeydown = e => { if (e.key === 'Enter') $('#go').click(); };
