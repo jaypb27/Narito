@@ -233,7 +233,7 @@ linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(
  * data = { students:[{id,last,first,middle,sex,section,enroll,enrollType,exit,exitType,remarks,...}],
  *          records:[[date,studentId,status,time,source,log]],   status: P present, L late/tardy, E excused absence
  *          noClass:{ 'yyyy-mm-dd': reason },
- *          sched:{ 'yyyy-mm-dd': {late, dismiss, note} },  now:{d, t} (optional: the day still running) }
+ *          sched:{ 'yyyy-mm-dd': {late, dismiss, note} },  secTimes:{ section: {late, dismiss} },  now:{d, t} (optional: the day still running) }
  */
 
 function coreDow(d) { var p = d.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay(); }
@@ -275,10 +275,15 @@ function coreAddMove(log, k, t, timeIn) {
 
 function coreMin(t) { return +String(t).slice(0, 2) * 60 + +String(t).slice(3, 5); }
 
-/** Times that apply on one date: the Settings values, unless the DaySchedule tab changes them (half day, late start). */
-function coreSched(S, data, d) {
-  var o = ((data && data.sched) || {})[d] || {}, ok = function (v) { return /^\d\d:\d\d$/.test(String(v || '')); };
-  return { late: ok(o.late) ? o.late : (ok(S.late) ? S.late : '07:45'), dismiss: ok(o.dismiss) ? o.dismiss : (ok(S.dismiss) ? S.dismiss : '16:00'),
+/**
+ * Times that apply to one section on one date. Order of priority:
+ * DaySchedule tab (half day, late start) → the section's own LateAfter/Dismissal (Sections tab) → Settings.
+ */
+function coreSched(S, data, d, section) {
+  var o = ((data && data.sched) || {})[d] || {}, c = ((data && data.secTimes) || {})[section] || {};
+  var ok = function (v) { return /^\d\d:\d\d$/.test(String(v || '')); };
+  return { late: ok(o.late) ? o.late : ok(c.late) ? c.late : (ok(S.late) ? S.late : '07:30'),
+    dismiss: ok(o.dismiss) ? o.dismiss : ok(c.dismiss) ? c.dismiss : (ok(S.dismiss) ? S.dismiss : '15:45'),
     lunchS: ok(S.lunchS) ? S.lunchS : '12:00', lunchE: ok(S.lunchE) ? S.lunchE : '13:00',
     cutMin: S.cutMin !== '' && S.cutMin != null && !isNaN(+S.cutMin) ? +S.cutMin : 30, note: o.note || '' };
 }
@@ -377,7 +382,7 @@ function coreCompute(data, section, from, to, thresholds) {
       st.marks[d] = m;
       if (r && r[3]) st.times[d] = r[3];
       if (r && (m === 'P' || m === 'L')) {
-        var dy = coreDay(r[5], r[3], coreSched(thresholds || {}, data, d), data.now && data.now.d === d ? data.now.t : null);
+        var dy = coreDay(r[5], r[3], coreSched(thresholds || {}, data, d, section), data.now && data.now.d === d ? data.now.t : null);
         st.outs += dy.outs; st.minOut += dy.minOut;
         if (dy.cut) { st.cuts++; st.cut[d] = true; }
       }
@@ -497,7 +502,7 @@ async function login(pin, silent) {
   A.pin = pin;
   $('#lmsg').textContent = silent ? '' : 'Opening…';
   try {
-    A.boot = await call('apiBoot');
+    A.boot = await call('apiBoot'); A.secT = null;
     LS.set('boot', A.boot); LS.set('pin', pin);
   } catch (e) {
     const m = String(e && e.message || e);
@@ -548,12 +553,13 @@ function record(q) {
 }
 function applyQueue() { A.queue.forEach(applyEvent); }
 const moves = r => r ? coreMoves(r[3], r[0] === 'E' ? '' : r[1]) : [];
-const schedFor = d => coreSched(A.boot.settings, A.boot, d);
+const secTimes = () => { if (!A.secT) { A.secT = {}; A.boot.sections.forEach(x => A.secT[x.name] = { late: x.late, dismiss: x.dismiss }); } return A.secT; };
+const schedFor = (d, sec) => coreSched(A.boot.settings, { sched: A.boot.sched, secTimes: secTimes() }, d, sec);
 const NONE = { outs: 0, minOut: 0, cut: false, leftEarly: false, outside: false, home: false };
-const dayOf = (r, d) => r && r[0] !== 'E' ? coreDay(r[3], r[1], schedFor(d), d === today() ? nowHM() : null) : NONE;
+const dayOf = (r, d, sec) => r && r[0] !== 'E' ? coreDay(r[3], r[1], schedFor(d, sec), d === today() ? nowHM() : null) : NONE;
 const isOut = r => { const m = moves(r); return m.length > 0 && m[m.length - 1].k === 'O'; };
 const mins = n => n >= 60 ? Math.floor(n / 60) + ' h ' + (n % 60 ? n % 60 + ' min' : '') : n + ' min';
-const schedNote = d => { const o = (A.boot.sched || {})[d]; return o ? (o.note || 'Special schedule') + ' · late after ' + t12(schedFor(d).late) + ' · dismissal ' + t12(schedFor(d).dismiss) : ''; };
+const schedNote = d => { const o = (A.boot.sched || {})[d]; return o ? (o.note || 'Special schedule') + (o.late ? ' · late after ' + t12(o.late) : '') + (o.dismiss ? ' · dismissal ' + t12(o.dismiss) : '') : ''; };
 const trail = r => moves(r).map(x => (x.k === 'I' ? 'In ' : 'Out ') + t12(x.t)).join(' → ');
 async function sync() {
   if (A.syncing || !A.queue.length || !navigator.onLine) return pill();
@@ -600,7 +606,7 @@ const secOpts = (sel, all) => (all ? '<option value="ALL">All sections</option>'
 const secInfo = n => A.boot.sections.find(s => s.name === n) || { name: n, grade: '', track: '', strand: '', course: '', adviser: '' };
 function dayCount(sec, d) {
   const m = A.rec[d] || {}, c = { P: 0, L: 0, E: 0, A: 0, n: 0, out: 0, cut: 0 };
-  roster(sec, d).forEach(s => { const r = m[s.id]; c[r ? r[0] : 'A']++; c.n++; const y = dayOf(r, d); if (y.outside && !y.home) c.out++; if (y.cut) c.cut++; });
+  roster(sec, d).forEach(s => { const r = m[s.id]; c[r ? r[0] : 'A']++; c.n++; const y = dayOf(r, d, s.section); if (y.outside && !y.home) c.out++; if (y.cut) c.cut++; });
   return c;
 }
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3200); }
@@ -624,7 +630,7 @@ function vScan() {
   $('#view').innerHTML = `
     <div class="finder"><video id="vid" playsinline muted></video><div class="corners"></div>
       <div class="start" id="start"><div><button class="btn gold" id="startBtn">Start scanner</button><p class="note" style="color:#cfe3dc;margin-top:12px">Point the camera at a learner's QR ID</p></div></div></div>
-    <div id="res"><div class="ic">·</div><div><b>Ready</b><span>${esc(DOWS[new Date().getDay()])}, ${esc(niceDate(today()))} · late after ${esc(t12(schedFor(today()).late))} · dismissal ${esc(t12(schedFor(today()).dismiss))}${(A.boot.sched || {})[today()] ? ' · ' + esc((A.boot.sched[today()].note) || 'special schedule') : ''}</span></div></div>
+    <div id="res"><div class="ic">·</div><div><b>Ready</b><span>${esc(DOWS[new Date().getDay()])}, ${esc(niceDate(today()))} · late after ${esc(t12(schedFor(today(), U.scanSec).late))} · dismissal ${esc(t12(schedFor(today(), U.scanSec).dismiss))}${(A.boot.sched || {})[today()] ? ' · ' + esc((A.boot.sched[today()].note) || 'special schedule') : ''}</span></div></div>
     <div class="seg" id="modeSeg"><button data-m="arrival">Arrival only</button><button data-m="gate">Gate: in &amp; out</button></div>
     <div class="tiles" id="cnt"></div>
     <div class="card"><div class="row"><select id="scanSec" aria-label="Section">${secOpts(U.scanSec, true)}</select></div>
@@ -724,7 +730,7 @@ function checkIn(id, src) {
   if (!coreActive(s, d)) { beep(200, .3); return showRes('bad', '!', coreName(s), 'No longer enrolled in ' + s.section); }
   const had = (A.rec[d] || {})[id], t = nowHM(), name = coreName(s);
   if (!had || had[0] === 'E') {                       // first scan of the day = arrival
-    const st = t > schedFor(d).late ? 'L' : 'P';
+    const st = t > schedFor(d, s.section).late ? 'L' : 'P';
     record({ d: d, id: id, st: st, t: t, src: had ? 'manual' : src, mv: 'I' });
     lastMove[id] = Date.now();
     beep(st === 'P' ? 880 : 620, .14); if (navigator.vibrate) navigator.vibrate(st === 'P' ? 60 : [60, 60, 60]);
@@ -738,7 +744,7 @@ function checkIn(id, src) {
     if (m.length && m[m.length - 1].t === t) { beep(440, .12); return showRes('dup', '✓', name, 'Already scanned this minute.'); }
     record({ d: d, id: id, mv: k, t: t, src: 'scan' });
     lastMove[id] = Date.now();
-    const y = dayOf((A.rec[d] || {})[id], d), after = t >= schedFor(d).dismiss;
+    const y = dayOf((A.rec[d] || {})[id], d, s.section), after = t >= schedFor(d, s.section).dismiss;
     beep(k === 'O' ? 520 : 880, .14); if (navigator.vibrate) navigator.vibrate(k === 'O' ? [40, 40, 40] : 60);
     showRes(k === 'O' ? 'out' : 'ok', k === 'O' ? '→' : '←', name, (k === 'O' ? (after ? 'Went home' : 'Went OUT during class hours') : 'Back IN') + ' · ' + t12(t) + (y.outs ? ' · out ' + y.outs + '× today' : '') + ' · ' + s.section);
   }
@@ -757,7 +763,7 @@ function beep(f, dur) {
 /* ───────── DAILY ───────── */
 async function vToday() {
   const d = U.date, c = dayCount(U.sec, d), m = A.rec[d] || {}, nc = A.boot.noClass[d];
-  const rows = roster(U.sec, d).map(s => ({ s: s, r: m[s.id], st: m[s.id] ? m[s.id][0] : 'A', y: dayOf(m[s.id], d) }));
+  const rows = roster(U.sec, d).map(s => ({ s: s, r: m[s.id], st: m[s.id] ? m[s.id][0] : 'A', y: dayOf(m[s.id], d, s.section) }));
   const groups = { A: rows.filter(x => x.st === 'A' || x.st === 'E'), L: rows.filter(x => x.st === 'L'), P: rows.filter(x => x.st === 'P' || x.st === 'L'),
     O: rows.filter(x => x.y.outs > 0 || x.y.cut || x.y.outside) };
   const B = { P: ['b-p', 'Present'], L: ['b-l', 'Late'], A: ['b-a', 'Absent'], E: ['b-e', 'Excused'] };
@@ -786,7 +792,7 @@ async function vToday() {
 function editStatus(id, d) {
   const s = stuById(id), r = (A.rec[d] || {})[id], inSchool = r && r[0] !== 'E';
   sheet(`<h4>${esc(coreName(s))}</h4><div class="note">${esc(s.section)} · ${esc(niceDate(d))}${r ? ' · now: ' + ({ P: 'Present', L: 'Late', E: 'Excused' })[r[0]] : ' · now: Absent'}</div>
-    ${inSchool && moves(r).length ? `<div class="note" style="margin-top:6px"><b>In/out:</b> ${esc(trail(r))}${dayOf(r, d).outs ? ' · went out ' + dayOf(r, d).outs + '× · ' + mins(dayOf(r, d).minOut) + ' outside during class hours' : ''}${dayOf(r, d).cut ? ' · <b style="color:#8a1f66">cutting classes</b>' : ''}</div>` : ''}
+    ${inSchool && moves(r).length ? `<div class="note" style="margin-top:6px"><b>In/out:</b> ${esc(trail(r))}${dayOf(r, d, s.section).outs ? ' · went out ' + dayOf(r, d, s.section).outs + '× · ' + mins(dayOf(r, d, s.section).minOut) + ' outside during class hours' : ''}${dayOf(r, d, s.section).cut ? ' · <b style="color:#8a1f66">cutting classes</b>' : ''}</div>` : ''}
     <div class="opt"><button class="btn" data-s="P">Present</button><button class="btn gold" data-s="L">Late / Tardy</button>
     <button class="btn ghost" data-s="E">Excused absence</button><button class="btn ghost" data-s="X" style="color:var(--coral)">Absent</button>
     ${inSchool && d === today() ? `<button class="btn ghost" data-s="${isOut(r) ? 'MI' : 'MO'}" style="color:#274c8f">${isOut(r) ? 'Record: came back IN now' : 'Record: went OUT now'}</button>` : ''}</div>`);
@@ -799,9 +805,9 @@ function editStatus(id, d) {
 }
 function daySchedule(d) {
   if (!navigator.onLine) return toast('Needs internet.');
-  const S = A.boot.settings, cur = (A.boot.sched || {})[d], sc = schedFor(d);
+  const S = A.boot.settings, cur = (A.boot.sched || {})[d], sc = schedFor(d, U.sec);
   const save = async (late, dismiss, note) => { try { A.boot.sched = await call('apiDaySchedule', d, late, dismiss, note); LS.set('boot', A.boot); closeSheet(); go(U.view); toast('Schedule saved.'); } catch (e) { toast('Could not save. Try again.'); } };
-  sheet(`<h4>Schedule for ${esc(niceDate(d))}</h4><div class="note">Regular days: late after ${esc(t12(S.late))}, dismissal ${esc(t12(S.dismiss || '16:00'))}. Change it for a half day or a late start so that learners are not wrongly marked late or cutting classes.</div>
+  sheet(`<h4>Schedule for ${esc(niceDate(d))}</h4><div class="note">Regular days follow Settings and each section’s own times (now: late after ${esc(t12(sc.late))}, dismissal ${esc(t12(sc.dismiss))}). A change here applies to ALL sections on this date. Change it for a half day or a late start so that learners are not wrongly marked late or cutting classes.</div>
     <div class="opt"><button class="btn ghost" id="sA">Half day — morning only (dismissal 12:00 NN)</button><button class="btn ghost" id="sP">Half day — afternoon only (late after 1:00 PM)</button>
     <div class="row"><label class="note">Late after<input type="time" id="sL" value="${esc(sc.late)}"></label><label class="note">Dismissal<input type="time" id="sD" value="${esc(sc.dismiss)}"></label></div>
     <input type="text" id="sN" placeholder="Note, e.g. Faculty meeting, early dismissal" maxlength="80" value="${esc(cur ? cur.note : '')}">
@@ -950,7 +956,7 @@ function vMore() {
     <div class="card"><b>Data</b><div class="note" style="margin:2px 0 10px">${A.boot.students.length} learners · ${A.boot.sections.length} sections · ${A.queue.length} scan(s) waiting to sync</div>
       <div class="row"><button class="btn ghost" id="mSync">Sync now</button><button class="btn ghost" id="mRef">Refresh learner list</button></div>
       ${S.sheetUrl ? `<a class="btn ghost" style="display:block;margin-top:8px" href="${esc(S.sheetUrl)}" target="_blank" rel="noopener">Open the Google Sheet</a>` : ''}</div>
-    <div class="card"><b>${esc(S.school)}</b><div class="note">SY ${esc(S.sy)} · Late after ${esc(t12(S.late))} · Dismissal ${esc(t12(S.dismiss || '16:00'))}<br>School Head: ${esc(S.principal || '—')} · LIS Coordinator: ${esc(S.lis || '—')}</div>
+    <div class="card"><b>${esc(S.school)}</b><div class="note">SY ${esc(S.sy)} · Late after ${esc(t12(S.late))} · Dismissal ${esc(t12(S.dismiss || '15:45'))} (sections may differ)<br>School Head: ${esc(S.principal || '—')} · LIS Coordinator: ${esc(S.lis || '—')}</div>
       <button class="btn ghost" id="mOut" style="width:100%;margin-top:10px">Log out</button></div>
     <p class="note" style="text-align:center">NARITO works without internet once opened. Keep this page open while scanning offline; scans sync by themselves when the signal returns.</p>
     <p class="note" style="text-align:center;margin-top:14px"><b style="color:var(--ink);letter-spacing:.1em">NARITO</b> · <i>Isang scan, bilang ka na.</i><br>Developed by <b style="color:var(--ink)">Joy P. Bacala</b>, Teacher I · Samal Senior High School</p>`;
@@ -958,7 +964,7 @@ function vMore() {
   $('#nAdd').onclick = () => noClass($('#nDate').value, false);
   document.querySelectorAll('[data-d]').forEach(b => b.onclick = () => noClass(b.dataset.d, true));
   $('#mSync').onclick = () => $('#pill').click();
-  $('#mRef').onclick = async () => { try { A.boot = await call('apiBoot'); LS.set('boot', A.boot); toast('Learner list updated.'); vMore(); } catch (e) { toast('Needs internet.'); } };
+  $('#mRef').onclick = async () => { try { A.boot = await call('apiBoot'); A.secT = null; LS.set('boot', A.boot); toast('Learner list updated.'); vMore(); } catch (e) { toast('Needs internet.'); } };
   $('#mOut').onclick = () => { if (A.queue.length && !confirm(A.queue.length + ' scan(s) are not synced yet. They stay on this phone. Log out anyway?')) return; LS.set('pin', ''); location.reload(); };
 }
 
@@ -987,7 +993,7 @@ function printDaily(sec, d) {
   const m = A.rec[d] || {}, L = { P: 'Present', L: 'Late', E: 'Excused', A: 'ABSENT' };
   const cnt = { M: { p: 0, l: 0, a: 0, c: 0 }, F: { p: 0, l: 0, a: 0, c: 0 } };
   const rows = roster(sec, d).map(s => { const r = m[s.id], st = r ? r[0] : 'A', g = cnt[s.sex === 'F' ? 'F' : 'M'];
-    const y = dayOf(r, d); if (st === 'P' || st === 'L') g.p++; else g.a++; if (st === 'L') g.l++; if (y.cut) g.c++; return { s: s, st: st, t: r ? r[1] : '', r: r, y: y }; });
+    const y = dayOf(r, d, s.section); if (st === 'P' || st === 'L') g.p++; else g.a++; if (st === 'L') g.l++; if (y.cut) g.c++; return { s: s, st: st, t: r ? r[1] : '', r: r, y: y }; });
   const went = rows.filter(x => x.y.outs > 0 || x.y.cut || x.y.outside);
   const remark = y => y.cut ? (y.leftEarly ? 'Cutting classes — left early, did not return' : 'Cutting classes') : y.leftEarly ? 'Left a little early' : y.home ? 'Went home after dismissal' : y.outside ? 'Still outside' : 'Returned';
   const tbl = (title, list, time) => `<h2>${title} (${list.length})</h2><table><tr><th style="width:34px">No.</th><th class="n">Name</th>${sec === 'ALL' ? '<th>Section</th>' : ''}<th style="width:40px">Sex</th>${time ? '<th style="width:80px">Time in</th>' : ''}<th style="width:90px">Status</th></tr>
@@ -1001,7 +1007,7 @@ function printDaily(sec, d) {
       <tr><td class="n">Absent</td><td>${cnt.M.a}</td><td>${cnt.F.a}</td><td><b>${T('a')}</b></td></tr>
       <tr><td class="n">Attendance rate</td><td colspan="3"><b>${rows.length ? pct(T('p') / rows.length * 100) : '—'}</b></td></tr></table>` +
     tbl('Absent', rows.filter(x => x.st === 'A' || x.st === 'E'), false) + tbl('Present', rows.filter(x => x.st === 'P' || x.st === 'L'), true) +
-    `<h2>In / out log (${went.length})</h2><div class="sub">Dismissal ${esc(t12(schedFor(d).dismiss))} · lunch break ${esc(t12(schedFor(d).lunchS))}–${esc(t12(schedFor(d).lunchE))} not counted · cutting classes = ${schedFor(d).cutMin} minutes or more outside during class hours</div>
+    `<h2>In / out log (${went.length})</h2><div class="sub">${sec === 'ALL' ? 'Dismissal follows each section’s schedule' : 'Dismissal ' + esc(t12(schedFor(d, sec).dismiss))} · lunch break ${esc(t12(schedFor(d, sec).lunchS))}–${esc(t12(schedFor(d, sec).lunchE))} not counted · cutting classes = ${schedFor(d, sec).cutMin} minutes or more outside during class hours</div>
     <table><tr><th style="width:34px">No.</th><th class="n">Name</th>${sec === 'ALL' ? '<th>Section</th>' : ''}<th class="n">Movements</th><th style="width:52px">Times out</th><th style="width:70px">Time outside</th><th class="n" style="width:150px">Remark</th></tr>
       ${went.map((x, i) => `<tr><td>${i + 1}</td><td class="n">${esc(coreName(x.s))}</td>${sec === 'ALL' ? `<td>${esc(x.s.section)}</td>` : ''}<td class="n">${esc(trail(x.r))}</td><td>${x.y.outs}</td><td>${mins(x.y.minOut)}</td><td class="n">${remark(x.y)}</td></tr>`).join('') || '<tr><td colspan="7">None</td></tr>'}</table>` + signs(sec));
 }
