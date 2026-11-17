@@ -6,10 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0d2f2d">
 <title>NARITO — Attendance</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<script src="config.js"></script>
+<!--SITE-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
@@ -70,7 +67,7 @@ header .hb{min-width:0} header .tag{font-size:11px;line-height:1.25;color:#ffd98
 main{padding:16px}
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);z-index:6;padding-bottom:env(safe-area-inset-bottom)}
 nav .wrap{display:flex}
-nav button{flex:1;padding:9px 0 10px;font-size:11px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button{flex:1;min-width:0;padding:9px 0 10px;font-size:10.5px;white-space:nowrap;font-weight:700;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
 nav svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 nav button.on{color:var(--green)}
 nav button.on svg{stroke:var(--leaf)}
@@ -127,6 +124,7 @@ linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(
 #res b{display:block;font-size:17px;line-height:1.2} #res span{font-size:13px;color:var(--muted)}
 #res.ok{background:var(--mint);border-color:#a9d8c5} #res.ok .ic{background:var(--leaf);color:#fff}
 #res.late{background:var(--goldbg);border-color:#efd58b} #res.late .ic{background:var(--gold);color:var(--ink)}
+#res.early{background:linear-gradient(120deg,#fff3d1,#dcefe7);border-color:#efd58b} #res.early .ic{background:var(--gold);color:var(--ink)}
 #res.out{background:#dfe8f7;border-color:#b3c6ea} #res.out .ic{background:#3566c0;color:#fff}
 #res.dup{background:#eceae4} #res.bad{background:var(--coralbg);border-color:#f0b4ad} #res.bad .ic{background:var(--coral);color:#fff}
 @media (prefers-reduced-motion:no-preference){#res.pop{animation:pop .25s ease-out}@keyframes pop{from{transform:scale(.96)}to{transform:scale(1)}}}
@@ -136,6 +134,13 @@ linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(
 .care.home{border-left-color:var(--coral)} .care.counsel{border-left-color:var(--gold)} .care.monitor{border-left-color:var(--leaf)}
 .care .who{font-weight:800;font-size:15.5px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.wh{background:linear-gradient(135deg,var(--ink),#1b6a60);color:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.wh b{font-size:24px;letter-spacing:.18em;display:block} .wh span{font-size:12.5px;color:#ffd98a}
+.wh .ac{color:var(--gold);font-weight:800}
+.wh svg{position:absolute;right:-8px;top:-6px;width:96px;height:96px;stroke:rgba(255,255,255,.12);fill:none;stroke-width:1.6}
+.rk{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none;background:#eee8da;color:var(--ink)}
+.rk.r1{background:#f0c24b} .rk.r2{background:#d9dde0} .rk.r3{background:#e8b98f}
+.li .val{text-align:right;font-weight:800;font-size:14px;flex:none} .li .val small{display:block;font-weight:600;color:var(--muted);font-size:11px}
 .pchip{font-size:13px;font-weight:700;border:1.5px solid var(--line);border-radius:99px;padding:8px 12px;background:#fff}
 .pchip.on{border-color:var(--leaf);background:var(--mint);color:var(--green)}
 .pick{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--line);font-size:14px}
@@ -175,6 +180,19 @@ linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(
 #paper table{width:100%;border-collapse:collapse;margin:10px 0} #paper th,#paper td{border:1px solid #000;padding:3px 5px;text-align:center;vertical-align:top}
 #paper th{background:#e9eeec} #paper td.n,#paper th.n{text-align:left}
 #paper h2{font-size:12px;margin:14px 0 2px;text-transform:uppercase;font-weight:bold;letter-spacing:0}
+#paper.land{max-width:1060px;padding:14px}
+.cert{border:3px solid #0d2f2d;padding:6px;margin:0 auto 18px;max-width:1030px;page-break-after:always;break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cert:last-child{page-break-after:auto;break-after:auto}
+.cin{border:1.5px solid #c9971c;padding:22px 40px 26px;text-align:center;background:radial-gradient(120% 90% at 50% 0%,#fffaf0,#fff 60%);min-height:640px;display:flex;flex-direction:column;align-items:center}
+.clh{display:flex;align-items:center;justify-content:center;gap:22px;font-size:11px;line-height:1.35} .clh img{width:64px;height:64px;object-fit:contain} .clh b{font-size:14px;text-transform:uppercase}
+.ctitle{font-family:Georgia,'Times New Roman',serif;font-size:40px;color:#0d2f2d;margin-top:22px;letter-spacing:.04em}
+.csub{font-size:13px;color:#444;margin-top:6px;font-style:italic}
+.cname{font-family:Georgia,'Times New Roman',serif;font-size:36px;font-weight:bold;margin-top:14px;padding:0 30px 4px;border-bottom:1.5px solid #c9971c;text-transform:uppercase;letter-spacing:.03em}
+.caward{margin-top:16px;font-size:20px;font-weight:800;color:#fff;background:#0d2f2d;padding:6px 22px;border-radius:99px;letter-spacing:.06em;text-transform:uppercase}
+.cplace{margin-top:6px;font-weight:800;color:#a67400;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.cwhy{max-width:720px;font-size:14px;line-height:1.6;margin:14px auto 0} .cdate{font-size:13px;margin:8px 0 0}
+.csign{display:flex;gap:40px;justify-content:center;margin-top:auto;padding-top:34px;width:100%} .csign div{flex:1;max-width:240px;font-size:11.5px}
+.csign b{display:block;border-bottom:1px solid #000;min-height:18px;font-size:13px;text-transform:uppercase;margin-bottom:3px}
 #paper .sign{display:flex;gap:24px;margin-top:36px;page-break-inside:avoid} #paper .sign div{flex:1;text-align:center;font-size:11px}
 #paper .sign .cap{text-align:left;margin-bottom:34px} #paper .sign b{display:block;border-bottom:1px solid #000;min-height:16px;text-transform:uppercase;font-size:12px}
 #paper .foot{margin-top:18px;font-size:9px;color:#555}
@@ -227,6 +245,7 @@ linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(
     <button data-v="scan"><svg viewBox="0 0 24 24"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10"/></svg>Scan</button>
     <button data-v="today"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8.5 15.5l2.2 2.2 4.5-4.5"/></svg>Daily</button>
     <button data-v="reports"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</button>
+    <button data-v="watch"><svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M10 2.5h4M12 2.5V6M18.5 6.5l1.5-1.5"/></svg>WATCH</button>
     <button data-v="care"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.8C19.500 16.400 12 21 12 21z"/></svg>Care</button>
     <button data-v="more"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7M17.500 17.500v.01"/></svg>IDs &amp; More</button>
   </div></nav>
@@ -236,229 +255,7 @@ linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(
 <div id="print" hidden><div class="bar"><button class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" id="pclose">Close</button><button class="btn gold" id="pgo">Print / Save as PDF</button></div><div id="paper"></div></div>
 <div id="toast" hidden></div>
 
-<script>/**
- * NARITO — Core.gs
- * Developed by Joy P. Bacala, Teacher I, Samal Senior High School.
- * Pure attendance logic. The SAME code runs on the server (SF2 generation)
- * and on the phone (reports while offline). Do not use Google services here.
- *
- * data = { students:[{id,last,first,middle,sex,section,enroll,enrollType,exit,exitType,remarks,...}],
- *          records:[[date,studentId,status,time,source,log]],   status: P present, L late/tardy, E excused absence
- *          noClass:{ 'yyyy-mm-dd': reason },
- *          sched:{ 'yyyy-mm-dd': {late, dismiss, note} },  secTimes:{ section: {late, dismiss} },  now:{d, t} (optional: the day still running) }
- */
-
-function coreDow(d) { var p = d.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay(); }
-
-function coreAdd(d, n) { var p = d.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + n)).toISOString().slice(0, 10); }
-
-function coreMonthEnd(ym) {
-  var p = ym.split('-');
-  return ym + '-' + ('0' + new Date(Date.UTC(+p[0], +p[1], 0)).getUTCDate()).slice(-2);
-}
-
-function coreName(s) {
-  return (s.last + ', ' + s.first + ' ' + (s.middle || '')).replace(/\s+/g, ' ').trim().replace(/,$/, '');
-}
-
-function coreActive(s, d) { return (!s.enroll || s.enroll <= d) && (!s.exit || s.exit > d); }
-
-/**
- * In/out trail of one learner for one day, kept as text: "I07:32 O10:05 I10:20" (I = came in, O = went out).
- * coreMoves returns it as a time-ordered list. Old rows without a trail count as one arrival at their time-in.
- */
-function coreMoves(log, timeIn) {
-  var out = [];
-  String(log || '').split(/\s+/).forEach(function (x) { if (/^[IO]\d\d:\d\d$/.test(x)) out.push({ k: x.charAt(0), t: x.slice(1) }); });
-  if (!out.length && timeIn) out.push({ k: 'I', t: timeIn });
-  out.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; });
-  return out;
-}
-
-/** Adds one movement. Two INs (or two OUTs) in a row are treated as the same event and ignored. */
-function coreAddMove(log, k, t, timeIn) {
-  var m = coreMoves(log, timeIn), last = m[m.length - 1];
-  if (!/^\d\d:\d\d$/.test(String(t)) || (k !== 'I' && k !== 'O')) return m.map(function (x) { return x.k + x.t; }).join(' ');
-  if (last ? last.k === k : k === 'O') return m.map(function (x) { return x.k + x.t; }).join(' ');
-  m.push({ k: k, t: t });
-  m.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; });
-  return m.map(function (x) { return x.k + x.t; }).join(' ');
-}
-
-function coreMin(t) { return +String(t).slice(0, 2) * 60 + +String(t).slice(3, 5); }
-
-/**
- * Times that apply to one section on one date. Order of priority:
- * DaySchedule for this section → DaySchedule for all sections → the section's own LateAfter/Dismissal (Sections tab) → Settings.
- */
-function coreSched(S, data, d, section) {
-  var sc = (data && data.sched) || {}, o = sc[d + '|' + section] || sc[d] || {}, c = ((data && data.secTimes) || {})[section] || {};
-  var ok = function (v) { return /^\d\d:\d\d$/.test(String(v || '')); };
-  return { late: ok(o.late) ? o.late : ok(c.late) ? c.late : (ok(S.late) ? S.late : '07:30'),
-    dismiss: ok(o.dismiss) ? o.dismiss : ok(c.dismiss) ? c.dismiss : (ok(S.dismiss) ? S.dismiss : '15:45'),
-    lunchS: ok(S.lunchS) ? S.lunchS : '12:00', lunchE: ok(S.lunchE) ? S.lunchE : '13:00',
-    cutMin: S.cutMin !== '' && S.cutMin != null && !isNaN(+S.cutMin) ? +S.cutMin : 30, note: o.note || '' };
-}
-
-/**
- * What one learner's in/out trail means for one day.
- *  outs      times the learner left BEFORE dismissal (going home after dismissal is not counted)
- *  minOut    minutes spent outside during class hours (lunch break excluded; if not back, counted up to dismissal)
- *  cut       cutting classes: minOut reached the limit set in Settings
- *  leftEarly left before dismissal and did not come back
- *  outside   currently outside (last scan was OUT), home = that OUT was at/after dismissal
- * now = 'HH:mm' while the day is still running, otherwise null.
- */
-function coreDay(log, timeIn, sc, now) {
-  var m = coreMoves(log, timeIn), D = coreMin(sc.dismiss), ls = coreMin(sc.lunchS), le = coreMin(sc.lunchE);
-  var end = now ? Math.min(coreMin(now), D) : D, start = m.length ? coreMin(m[0].t) : 0;
-  var span = function (a, b) {
-    a = Math.max(a, start); b = Math.min(b, end);
-    if (b <= a) return 0;
-    return (b - a) - Math.max(0, Math.min(b, le) - Math.max(a, ls));
-  };
-  var r = { outs: 0, minOut: 0, cut: false, leftEarly: false, outside: false, home: false }, outAt = null;
-  m.forEach(function (x) {
-    var t = coreMin(x.t);
-    if (x.k === 'O') { outAt = t; if (t < D) r.outs++; }
-    else if (outAt !== null) { r.minOut += span(outAt, t); outAt = null; }
-  });
-  if (outAt !== null) { r.outside = true; r.minOut += span(outAt, end); r.home = outAt >= D; r.leftEarly = outAt < D; }
-  r.cut = r.minOut >= sc.cutMin && sc.cutMin > 0;
-  return r;
-}
-
-/** Default intervention thresholds (overridden by the Settings sheet). */
-function coreThresholds(t) {
-  var d = { hvStreak: 5, hvRate: 20, cStreak: 3, cRate: 10, cTardy: 5, mAbs: 2, mTardy: 3, critStreak: 10, cCut: 3, mCut: 1 };
-  for (var k in (t || {})) if (t[k] !== '' && t[k] != null && !isNaN(+t[k])) d[k] = +t[k];
-  return d;
-}
-
-/** Decide the intervention tier of one learner from their stats. */
-function coreTier(st, th) {
-  var reasons = [], tier = '';
-  var absRate = st.enrolledDays ? (st.absent / st.enrolledDays) * 100 : 0;
-  var enough = st.enrolledDays >= 5;
-  if (st.maxStreak >= th.hvStreak) { tier = 'home'; reasons.push(st.maxStreak + ' consecutive school days absent'); }
-  if (enough && absRate >= th.hvRate) { tier = 'home'; reasons.push('absent ' + Math.round(absRate) + '% of class days (limit ' + th.hvRate + '%)'); }
-  if (!tier) {
-    if (st.maxStreak >= th.cStreak) { tier = 'counsel'; reasons.push(st.maxStreak + ' consecutive school days absent'); }
-    if (enough && absRate >= th.cRate) { tier = 'counsel'; reasons.push('absent ' + Math.round(absRate) + '% of class days'); }
-    if (st.tardy >= th.cTardy) { tier = 'counsel'; reasons.push('tardy ' + st.tardy + ' times'); }
-    if (st.cuts >= th.cCut) { tier = 'counsel'; reasons.push('cut classes ' + st.cuts + ' time' + (st.cuts > 1 ? 's' : '')); }
-  }
-  if (!tier) {
-    if (st.absent >= th.mAbs) { tier = 'monitor'; reasons.push(st.absent + ' absences'); }
-    if (st.tardy >= th.mTardy) { tier = 'monitor'; reasons.push('tardy ' + st.tardy + ' times'); }
-    if (st.cuts >= th.mCut) { tier = 'monitor'; reasons.push('cut classes ' + st.cuts + ' time' + (st.cuts > 1 ? 's' : '')); }
-  }
-  var action = {
-    home: 'Conduct a home visitation within the week and hold a parent/guardian conference. Identify the cause of absences and agree on a return-to-class plan.',
-    counsel: 'Refer for counseling with the Guidance Advocate. Notify the parent/guardian by call or letter and set a weekly attendance check-in.',
-    monitor: 'Adviser talks to the learner one-on-one. Watch attendance closely for the next two weeks.'
-  }[tier] || '';
-  var critical = st.maxStreak >= th.critStreak;
-  if (critical) action += ' AT RISK OF DROPPING OUT — elevate to the School Head.';
-  return { tier: tier, reasons: reasons, action: action, critical: critical };
-}
-
-/**
- * Attendance statistics of ONE section between two dates (inclusive).
- * A date is a class day when it is Mon–Fri, not listed in NoClassDays,
- * and at least one learner of the section was recorded present that day.
- */
-function coreCompute(data, section, from, to, thresholds) {
-  var th = coreThresholds(thresholds);
-  var studs = data.students.filter(function (s) { return s.section === section; });
-  var inSec = {}; studs.forEach(function (s) { inSec[s.id] = 1; });
-  var byStu = {}, daySet = {};
-  data.records.forEach(function (r) {
-    var d = r[0];
-    if (d < from || d > to || !inSec[r[1]]) return;
-    (byStu[r[1]] = byStu[r[1]] || {})[d] = r;
-    var w = coreDow(d);
-    if ((r[2] === 'P' || r[2] === 'L') && w >= 1 && w <= 5 && !(data.noClass || {})[d]) daySet[d] = 1;
-  });
-  var days = Object.keys(daySet).sort();
-  var daily = {}; days.forEach(function (d) { daily[d] = { M: 0, F: 0 }; });
-  var out = studs.map(function (s) {
-    var st = { id: s.id, name: coreName(s), sex: s.sex === 'F' ? 'F' : 'M', section: s.section, s: s,
-      marks: {}, times: {}, present: 0, absent: 0, tardy: 0, excused: 0, outs: 0, cuts: 0, minOut: 0, cut: {}, enrolledDays: 0, maxStreak: 0, curStreak: 0, absDates: [] };
-    var run = 0, recs = byStu[s.id] || {};
-    days.forEach(function (d) {
-      if (!coreActive(s, d)) { st.marks[d] = ''; run = 0; return; }
-      st.enrolledDays++;
-      var r = recs[d], m = r ? r[2] : 'A';
-      if (m !== 'P' && m !== 'L' && m !== 'E') m = 'A';
-      st.marks[d] = m;
-      if (r && r[3]) st.times[d] = r[3];
-      if (r && (m === 'P' || m === 'L')) {
-        var dy = coreDay(r[5], r[3], coreSched(thresholds || {}, data, d, section), data.now && data.now.d === d ? data.now.t : null);
-        st.outs += dy.outs; st.minOut += dy.minOut;
-        if (dy.cut) { st.cuts++; st.cut[d] = true; }
-      }
-      if (m === 'P' || m === 'L') { st.present++; daily[d][st.sex]++; run = 0; if (m === 'L') st.tardy++; }
-      else { st.absent++; st.absDates.push(d); if (m === 'E') st.excused++; run++; if (run > st.maxStreak) st.maxStreak = run; }
-    });
-    st.curStreak = run;
-    st.rate = st.enrolledDays ? (st.present / st.enrolledDays) * 100 : null;
-    var t = coreTier(st, th);
-    st.tier = t.tier; st.reasons = t.reasons; st.action = t.action; st.critical = t.critical;
-    return st;
-  });
-  out.sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
-  var last = days.length ? days[days.length - 1] : to;
-  var tot = { M: { att: 0, reg: 0 }, F: { att: 0, reg: 0 }, T: { att: 0, reg: 0 } };
-  days.forEach(function (d) { tot.M.att += daily[d].M; tot.F.att += daily[d].F; });
-  out.forEach(function (st) { if (coreActive(st.s, last)) tot[st.sex].reg++; });
-  tot.T.att = tot.M.att + tot.F.att; tot.T.reg = tot.M.reg + tot.F.reg;
-  ['M', 'F', 'T'].forEach(function (g) {
-    tot[g].ada = days.length ? tot[g].att / days.length : 0;
-    tot[g].pct = tot[g].reg ? (tot[g].ada / tot[g].reg) * 100 : 0;
-  });
-  return { section: section, from: from, to: to, days: days, daily: daily, students: out, totals: tot };
-}
-
-/** The "Summary" box of SF2 for one section and one month (ym = 'yyyy-mm'). r = coreCompute result of that month. */
-function coreSf2Summary(data, section, ym, cutoff, r) {
-  var from = ym + '-01', to = coreMonthEnd(ym);
-  var inMonth = function (d) { return d && d >= from && d <= to; };
-  var res = {};
-  ['M', 'F'].forEach(function (g) {
-    var studs = data.students.filter(function (s) { return s.section === section && (s.sex === 'F' ? 'F' : 'M') === g; });
-    var o = { enrolFF: 0, late: 0, registered: 0, absent5: 0, nls: 0, tOut: 0, tIn: 0, sOut: 0, sIn: 0, att: r.totals[g].att };
-    studs.forEach(function (s) {
-      if (cutoff ? coreActive(s, cutoff) : !s.enrollType) o.enrolFF++;
-      if (s.enrollType === 'Late Enrolment' && inMonth(s.enroll)) o.late++;
-      if (s.enrollType === 'Transferred In' && inMonth(s.enroll)) o.tIn++;
-      if (s.enrollType === 'Shifted In' && inMonth(s.enroll)) o.sIn++;
-      if (s.exitType === 'NLS' && inMonth(s.exit)) o.nls++;
-      if (s.exitType === 'Transferred Out' && inMonth(s.exit)) o.tOut++;
-      if (s.exitType === 'Shifted Out' && inMonth(s.exit)) o.sOut++;
-      if (coreActive(s, to)) o.registered++;
-    });
-    r.students.forEach(function (st) { if (st.sex === g && st.maxStreak >= 5) o.absent5++; });
-    res[g] = o;
-  });
-  var T = {}; for (var k in res.M) T[k] = res.M[k] + res.F[k];
-  res.T = T;
-  ['M', 'F', 'T'].forEach(function (g) {
-    var o = res[g];
-    o.pctEnrol = o.enrolFF ? (o.registered / o.enrolFF) * 100 : 0;
-    o.ada = r.days.length ? o.att / r.days.length : 0;
-    o.pctAtt = o.registered ? (o.ada / o.registered) * 100 : 0;
-  });
-  res.classDays = r.days.length;
-  return res;
-}
-
-/** Source text of every core function, injected into the phone app by doGet(). */
-function coreSource_() {
-  return [coreDow, coreAdd, coreMonthEnd, coreName, coreActive, coreMoves, coreAddMove, coreMin, coreSched, coreDay, coreThresholds, coreTier, coreCompute, coreSf2Summary]
-    .map(function (f) { return f.toString(); }).join('\n');
-}
-</script>
+<script><?!= coreSource_() ?></script>
 <script>
 'use strict';
 const HAS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
@@ -484,7 +281,7 @@ const pct = v => v == null ? '—' : (Math.round(v * 10) / 10) + '%';
 const A = { pin: '', boot: null, rec: {}, queue: LS.get('queue', []), loaded: {}, syncing: false,
   dev: LS.get('dev', null) || ('D' + Math.random().toString(36).slice(2, 7)) };
 LS.set('dev', A.dev);
-const U = { mode: LS.get('mode', 'arrival'), view: 'scan', sec: 'ALL', scanSec: 'ALL', date: today(), tab: 'A', period: 'month', ym: today().slice(0, 7), sf2: null };
+const U = { wper: 'month', wday: '', mode: LS.get('mode', 'arrival'), view: 'scan', sec: 'ALL', scanSec: 'ALL', date: today(), tab: 'A', period: 'month', ym: today().slice(0, 7), sf2: null };
 
 /* ───────── server calls (or demo data when opened outside Apps Script) ───────── */
 function call(fn, ...args) {
@@ -569,6 +366,7 @@ const secTimes = () => { if (!A.secT) { A.secT = {}; A.boot.sections.forEach(x =
 const schedFor = (d, sec) => coreSched(A.boot.settings, { sched: A.boot.sched, secTimes: secTimes() }, d, sec);
 const NONE = { outs: 0, minOut: 0, cut: false, leftEarly: false, outside: false, home: false };
 const dayOf = (r, d, sec) => r && r[0] !== 'E' ? coreDay(r[3], r[1], schedFor(d, sec), d === today() ? nowHM() : null) : NONE;
+const earlyMin = () => { const v = +A.boot.settings.earlyMin; return isNaN(v) || A.boot.settings.earlyMin === '' ? 15 : v; };
 const isOut = r => { const m = moves(r); return m.length > 0 && m[m.length - 1].k === 'O'; };
 const mins = n => n >= 60 ? Math.floor(n / 60) + ' h ' + (n % 60 ? n % 60 + ' min' : '') : n + ' min';
 const schedEntry = (d, sec) => { const m = A.boot.sched || {}; return m[d + '|' + sec] || m[d] || null; };
@@ -632,7 +430,7 @@ function go(v) {
   if (U.view === 'scan' && v !== 'scan') stopCam();
   U.view = v;
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
-  ({ scan: vScan, today: vToday, reports: vReports, care: vCare, more: vMore })[v]();
+  ({ scan: vScan, today: vToday, reports: vReports, watch: vWatch, care: vCare, more: vMore })[v]();
   scrollTo(0, 0);
 }
 function soft() { if (U.view === 'scan') scanCounters(); else if (U.view === 'today') vToday(); }
@@ -748,7 +546,9 @@ function checkIn(id, src) {
     record({ d: d, id: id, st: st, t: t, src: had ? 'manual' : src, mv: 'I' });
     lastMove[id] = Date.now();
     beep(st === 'P' ? 880 : 620, .14); if (navigator.vibrate) navigator.vibrate(st === 'P' ? 60 : [60, 60, 60]);
-    showRes(st === 'P' ? 'ok' : 'late', st === 'P' ? '✓' : 'L', name, (st === 'P' ? 'Present' : 'Late') + ' · ' + t12(t) + ' · ' + s.section);
+    const early = st === 'P' && coreMin(t) <= coreMin(schedFor(d, s.section).late) - earlyMin();
+    if (early) showRes('early', '★', name, 'Early bird! · ' + t12(t) + ' · ' + s.section);
+    else showRes(st === 'P' ? 'ok' : 'late', st === 'P' ? '✓' : 'L', name, (st === 'P' ? 'Present' : 'Late') + ' · ' + t12(t) + ' · ' + s.section);
   } else if (U.mode !== 'gate') {
     beep(440, .12); showRes('dup', '✓', name, 'Already recorded at ' + t12(had[1]) + ' · ' + s.section);
   } else if (Date.now() - (lastMove[id] || 0) < 60000) {
@@ -971,6 +771,156 @@ function showSf2() {
     <div class="row"><a class="btn sm" href="${esc(x.pdf)}" target="_blank" rel="noopener">PDF</a><a class="btn sm ghost" href="${esc(x.xlsx)}" target="_blank" rel="noopener">Excel</a><a class="btn sm ghost" href="${esc(x.url)}" target="_blank" rel="noopener">Open sheet</a></div></div>`;
 }
 
+/* ───────── WATCH — We Advocate Time Consciousness and Honesty ───────── */
+function wPeriod() {
+  const S = A.boot.settings, t = today();
+  if (U.wper === 'day') return { from: U.wday, to: U.wday, label: DOWS[coreDow(U.wday)] + ', ' + niceDate(U.wday) };
+  if (U.wper === 'week') { const mo = coreAdd(t, 1 - (coreDow(t) || 7)), fr = coreAdd(mo, 4);
+    return { from: mo, to: fr, label: 'Week of ' + MONTHS[+mo.slice(5, 7) - 1] + ' ' + +mo.slice(8) + ' – ' + (fr.slice(5, 7) === mo.slice(5, 7) ? '' : MONTHS[+fr.slice(5, 7) - 1] + ' ') + +fr.slice(8) + ', ' + fr.slice(0, 4) }; }
+  if (U.wper === 'month') return { from: U.ym + '-01', to: coreMonthEnd(U.ym), label: niceMonth(U.ym) };
+  if (U.wper === 'sy') return { from: S.t1s, to: S.t3e, label: 'School Year ' + S.sy };
+  const n = U.wper.slice(1);
+  return { from: S['t' + n + 's'], to: S['t' + n + 'e'], label: 'Term ' + n + ', SY ' + S.sy };
+}
+const hmOf = m => m == null ? '—' : t12(pad(Math.floor(m / 60)) + ':' + pad(Math.round(m % 60) % 60));
+const byEarly = (a, b) => b.early - a.early || (b.earlyRate || 0) - (a.earlyRate || 0) || (a.avgArr || 1e9) - (b.avgArr || 1e9) || a.name.localeCompare(b.name);
+function watchData(sec, p) {
+  const r = compute(sec, p.from, p.to), st = r.students.filter(s => s.present > 0 || s.absent > 0);
+  const sum = { present: 0, early: 0, tardy: 0, cuts: 0, arrSum: 0, arrN: 0 };
+  st.forEach(s => { sum.present += s.present; sum.early += s.early; sum.tardy += s.tardy; sum.cuts += s.cuts; sum.arrSum += s.arrSum; sum.arrN += s.arrN; });
+  sum.punct = sum.present ? (sum.present - sum.tardy) / sum.present * 100 : null;
+  sum.earlyRate = sum.present ? sum.early / sum.present * 100 : null;
+  sum.avgArr = sum.arrN ? sum.arrSum / sum.arrN : null;
+  const ranked = st.filter(s => s.early > 0).sort(byEarly);
+  const perSec = {}; ranked.forEach(s => (perSec[s.section] = perSec[s.section] || []).push(s));
+  const standings = r.parts.map(pt => { const o = { section: pt.section, present: 0, tardy: 0, early: 0, arrSum: 0, arrN: 0, exemplars: 0 };
+    pt.students.forEach(s => { o.present += s.present; o.tardy += s.tardy; o.early += s.early; o.arrSum += s.arrSum; o.arrN += s.arrN; if (s.exemplar) o.exemplars++; });
+    o.punct = o.present ? (o.present - o.tardy) / o.present * 100 : null; o.earlyRate = o.present ? o.early / o.present * 100 : null; o.avgArr = o.arrN ? o.arrSum / o.arrN : null; return o; })
+    .filter(o => o.present > 0).sort((a, b) => (b.punct || 0) - (a.punct || 0) || (b.earlyRate || 0) - (a.earlyRate || 0) || (a.avgArr || 1e9) - (b.avgArr || 1e9));
+  const exemplars = st.filter(s => s.exemplar).sort((a, b) => (a.avgArr || 1e9) - (b.avgArr || 1e9));
+  const th = coreThresholds(A.boot.settings);
+  const coach = st.filter(s => s.tardy >= th.mTardy || s.cuts >= th.mCut).sort((a, b) => b.tardy + b.cuts * 2 - a.tardy - a.cuts * 2);
+  return { r: r, sum: sum, ranked: ranked, perSec: perSec, standings: standings, exemplars: exemplars, coach: coach, days: r.days };
+}
+function firstArrivals(sec, d) {
+  const m = A.rec[d] || {};
+  return roster(sec, d).map(s => ({ s: s, r: m[s.id] })).filter(x => x.r && (x.r[0] === 'P' || x.r[0] === 'L') && /^\d\d:\d\d$/.test(x.r[1] || ''))
+    .map(x => ({ s: x.s, t: x.r[1], st: x.r[0], early: x.r[0] === 'P' && coreMin(x.r[1]) <= coreMin(schedFor(d, x.s.section).late) - earlyMin() }))
+    .sort((a, b) => a.t.localeCompare(b.t) || coreName(a.s).localeCompare(coreName(b.s)));
+}
+async function vWatch() {
+  U.wper = U.wper || 'month'; U.wday = U.wday || today();
+  const p = wPeriod(), head = `<div class="wh"><svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M10 2.5h4M12 2.5V6"/></svg><b>WATCH</b>
+    <span><span class="ac">W</span>e <span class="ac">A</span>dvocate <span class="ac">T</span>ime <span class="ac">C</span>onsciousness and <span class="ac">H</span>onesty</span></div>`;
+  const bar = `<div class="row" style="margin-bottom:8px"><select id="wSec" aria-label="Section">${secOpts(U.sec, true)}</select>
+    <select id="wPer" aria-label="Period">${[['day', 'Day'], ['week', 'This week'], ['month', 'Month'], ['t1', 'Term 1'], ['t2', 'Term 2'], ['t3', 'Term 3'], ['sy', 'Whole school year']].map(x => `<option value="${x[0]}" ${U.wper === x[0] ? 'selected' : ''}>${x[1]}</option>`).join('')}</select></div>
+    ${U.wper === 'month' ? `<input type="month" id="wYm" value="${U.ym}" style="margin-bottom:12px">` : U.wper === 'day' ? `<input type="date" id="wDay" value="${U.wday}" max="${today()}" style="margin-bottom:12px">` : `<p class="note" style="margin:0 0 12px">${esc(p.label)} · ${esc(niceDate(p.from))} – ${esc(niceDate(p.to))}</p>`}`;
+  const bind = () => {
+    $('#wSec').onchange = e => { U.sec = e.target.value; vWatch(); };
+    $('#wPer').onchange = e => { U.wper = e.target.value; vWatch(); };
+    if ($('#wYm')) $('#wYm').onchange = e => { U.ym = e.target.value || today().slice(0, 7); vWatch(); };
+    if ($('#wDay')) $('#wDay').onchange = e => { U.wday = e.target.value || today(); vWatch(); };
+  };
+  $('#view').innerHTML = head + bar + '<p class="note">Loading…</p>'; bind();
+  const fresh = await ensure(p.from, p.to);
+  if (U.view !== 'watch') return;
+  const W = watchData(U.sec, p), S = W.sum, rule = `Early bird = arrived ${earlyMin()} minutes or more before the late-after time (e.g. by ${esc(t12(pad(Math.floor((coreMin(A.boot.settings.late) - earlyMin()) / 60)) + ':' + pad((coreMin(A.boot.settings.late) - earlyMin()) % 60)))} when late-after is ${esc(t12(A.boot.settings.late))}).`;
+  const rk = (i) => `<span class="rk ${i < 3 ? 'r' + (i + 1) : ''}">${i + 1}</span>`;
+  const item = (s, i) => `<div class="li">${rk(i)}<span class="nm">${esc(s.name)}<small>${esc(s.section)} · avg arrival ${esc(hmOf(s.avgArr))} · ${s.tardy} tardy</small></span><span class="val">${s.early}<small>early days</small></span></div>`;
+  let body = '';
+  if (U.wper === 'day') {
+    const fa = firstArrivals(U.sec, U.wday);
+    body = `<h3>First to arrive (${fa.length})</h3><div class="list">${fa.slice(0, 30).map((x, i) => `<div class="li">${rk(i)}<span class="nm">${esc(coreName(x.s))}<small>${esc(x.s.section)}</small></span><span class="badge ${x.early ? 'b-l' : x.st === 'L' ? 'b-a' : 'b-p'}">${esc(t12(x.t))}${x.early ? ' ★' : x.st === 'L' ? ' late' : ''}</span></div>`).join('') || '<div class="li note">No arrivals recorded for this day.</div>'}</div>`;
+  } else {
+    const secs = U.sec === 'ALL' ? Object.keys(W.perSec).sort() : [U.sec];
+    body = `${U.sec === 'ALL' ? `<h3>Section standings</h3><div class="card scroll"><table class="t"><tr><th>#</th><th>Section</th><th>On time</th><th>Early</th><th>Avg in</th></tr>
+        ${W.standings.map((o, i) => `<tr><td>${i + 1}</td><td style="text-align:left">${esc(o.section)}</td><td>${pct(o.punct)}</td><td>${pct(o.earlyRate)}</td><td>${esc(hmOf(o.avgArr))}</td></tr>`).join('') || '<tr><td colspan="5">No arrivals yet.</td></tr>'}</table></div>
+      <h3>School-wide early birds — Top 10</h3><div class="list">${W.ranked.slice(0, 10).map(item).join('') || '<div class="li note">No early birds yet for this period.</div>'}</div>` : ''}
+      ${secs.map(n => `<h3>Early birds — ${esc(n)}</h3><div class="list">${(W.perSec[n] || []).slice(0, U.sec === 'ALL' ? 3 : 10).map(item).join('') || '<div class="li note">No early birds yet.</div>'}</div>`).join('')}
+      <h3>WATCH exemplars — perfect time record (${W.exemplars.length})</h3>
+      <div class="list">${W.exemplars.slice(0, 40).map(s => `<div class="li"><span class="rk r1">★</span><span class="nm">${esc(s.name)}<small>${esc(s.section)} · present all ${s.present} days · never late · never cut classes</small></span></div>`).join('') || '<div class="li note">None yet for this period.</div>'}</div>
+      ${W.coach.length ? `<h3>Needs reminders on time (${W.coach.length})</h3><div class="list">${W.coach.slice(0, 15).map(s => `<div class="li"><span class="nm">${esc(s.name)}<small>${esc(s.section)}</small></span><span class="badge b-a">${s.tardy} tardy${s.cuts ? ' · ' + s.cuts + ' cut' : ''}</span></div>`).join('')}</div>` : ''}`;
+  }
+  $('#view').innerHTML = head + bar + `
+    ${fresh ? '' : '<div class="warn">Offline — based only on attendance stored on this phone.</div>'}
+    <div class="tiles four"><div class="tile l"><b>${S.early}</b><span>Early-bird arrivals</span></div><div class="tile p"><b>${pct(S.punct)}</b><span>Arrivals on time</span></div>
+      <div class="tile"><b style="font-size:21px">${esc(hmOf(S.avgArr))}</b><span>Average arrival</span></div><div class="tile"><b>${W.exemplars.length}</b><span>${U.wper === 'day' ? 'On time, no cutting' : 'Perfect time record'}</span></div></div>
+    <div class="row"><button class="btn" id="wPrint">WATCH report</button><button class="btn gold" id="wCert" ${U.wper === 'day' ? 'disabled' : ''}>Certificates</button></div>
+    <p class="note" style="margin:8px 0 0">${rule}</p>` + body;
+  bind();
+  $('#wPrint').onclick = () => printWatch(U.sec, p, W);
+  $('#wCert').onclick = () => pickCerts(U.sec, p, W);
+}
+function watchSigns(sec) {
+  const S = A.boot.settings, adv = sec === 'ALL' ? '' : secInfo(sec).adviser;
+  const col = (cap, name, role) => `<div><div class="cap">${cap}</div><b>${esc(name)}</b>${role}</div>`;
+  return `<div class="sign">${sec === 'ALL' ? col('Prepared by:', S.watch, 'WATCH Coordinator') : col('Prepared by:', adv, 'Class Adviser') + col('Checked by:', S.watch, 'WATCH Coordinator')}${col('Noted by:', S.principal, 'School Head')}</div>
+    <div class="foot">Generated through NARITO on ${esc(niceDate(today()))}, ${esc(t12(nowHM()))}. NARITO was developed by Joy P. Bacala, Teacher I, Samal Senior High School.</div>`;
+}
+function printWatch(sec, p, W) {
+  const S = W.sum, all = sec === 'ALL';
+  const rows = (list, n) => list.slice(0, n).map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td>${all ? `<td>${esc(s.section)}</td>` : ''}<td>${s.early}</td><td>${s.onTime}</td><td>${s.tardy}</td><td>${esc(hmOf(s.avgArr))}</td></tr>`).join('');
+  const thead = `<tr><th style="width:30px">Rank</th><th class="n">Name</th>${all ? '<th>Section</th>' : ''}<th>Early days</th><th>On-time days</th><th>Tardy</th><th>Average arrival</th></tr>`;
+  let html = docHead('WATCH Report', sec, p.label) + `<div class="sub" style="text-align:center;margin:-4px 0 10px"><b>W</b>e <b>A</b>dvocate <b>T</b>ime <b>C</b>onsciousness and <b>H</b>onesty — Early Birds and Punctuality</div>`;
+  if (U.wper === 'day') {
+    const fa = firstArrivals(sec, p.from);
+    html += `<h2>Order of arrival (${fa.length})</h2><table><tr><th style="width:30px">No.</th><th class="n">Name</th>${all ? '<th>Section</th>' : ''}<th>Time in</th><th>Remark</th></tr>
+      ${fa.map((x, i) => `<tr><td>${i + 1}</td><td class="n">${esc(coreName(x.s))}</td>${all ? `<td>${esc(x.s.section)}</td>` : ''}<td>${esc(t12(x.t))}</td><td>${x.early ? 'Early bird' : x.st === 'L' ? 'Late' : 'On time'}</td></tr>`).join('') || '<tr><td colspan="5">None</td></tr>'}</table>`;
+  } else {
+    html += `<table><tr><th>Class days</th><th>Arrivals recorded</th><th>Early-bird arrivals</th><th>Arrivals on time</th><th>Tardy arrivals</th><th>Cutting classes</th><th>Average arrival</th><th>Perfect time record</th></tr>
+      <tr><td>${W.days}</td><td>${S.present}</td><td>${S.early} (${pct(S.earlyRate)})</td><td>${pct(S.punct)}</td><td>${S.tardy}</td><td>${S.cuts}</td><td>${esc(hmOf(S.avgArr))}</td><td>${W.exemplars.length}</td></tr></table>`;
+    if (all) html += `<h2>Section standings</h2><table><tr><th style="width:30px">Rank</th><th class="n">Section</th><th>Adviser</th><th>Arrivals on time</th><th>Early-bird arrivals</th><th>Average arrival</th><th>Perfect time record</th></tr>
+      ${W.standings.map((o, i) => `<tr><td>${i + 1}</td><td class="n">${esc(o.section)}</td><td>${esc(secInfo(o.section).adviser)}</td><td>${pct(o.punct)}</td><td>${o.early} (${pct(o.earlyRate)})</td><td>${esc(hmOf(o.avgArr))}</td><td>${o.exemplars}</td></tr>`).join('')}</table>
+      <h2>School-wide early birds — Top 10</h2><table>${thead}${rows(W.ranked, 10) || '<tr><td colspan="7">None</td></tr>'}</table>`;
+    (all ? Object.keys(W.perSec).sort() : [sec]).forEach(n => {
+      html += `<h2>Early bird awardees — ${esc(n)}</h2><table>${thead.replace('<th>Section</th>', '')}${(W.perSec[n] || []).slice(0, all ? 3 : 10).map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td><td>${s.early}</td><td>${s.onTime}</td><td>${s.tardy}</td><td>${esc(hmOf(s.avgArr))}</td></tr>`).join('') || '<tr><td colspan="6">None</td></tr>'}</table>`;
+    });
+    html += `<h2>WATCH exemplars — perfect time record (${W.exemplars.length})</h2><div class="sub">Present on every class day, never late, never cut classes.</div>
+      <table><tr><th style="width:30px">No.</th><th class="n">Name</th>${all ? '<th>Section</th>' : ''}<th>Days present</th><th>Average arrival</th></tr>
+      ${W.exemplars.map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td>${all ? `<td>${esc(s.section)}</td>` : ''}<td>${s.present}</td><td>${esc(hmOf(s.avgArr))}</td></tr>`).join('') || '<tr><td colspan="5">None</td></tr>'}</table>
+      <h2>Learners who need reminders on time consciousness (${W.coach.length})</h2>
+      <table><tr><th style="width:30px">No.</th><th class="n">Name</th>${all ? '<th>Section</th>' : ''}<th>Tardy</th><th>Cutting classes</th><th>Average arrival</th><th class="n">Suggested action</th></tr>
+      ${W.coach.map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td>${all ? `<td>${esc(s.section)}</td>` : ''}<td>${s.tardy}</td><td>${s.cuts}</td><td>${esc(hmOf(s.avgArr))}</td><td class="n">${s.cuts ? 'Talk with the learner and parent about leaving class; follow the Care list' : 'Adviser reminder on arriving on time; recognize improvement'}</td></tr>`).join('') || '<tr><td colspan="7">None</td></tr>'}</table>`;
+  }
+  html += `<div class="sub" style="margin-top:8px">Basis: early bird = arrived ${earlyMin()} minutes or more before the late-after time of the learner's section on that day; on time = not marked late; perfect time record = present every class day, never late, never cut classes. Ties are broken by the earlier average arrival time.</div>` + watchSigns(sec);
+  paper(html);
+}
+function pickCerts(sec, p, W) {
+  const cand = [];
+  (sec === 'ALL' ? Object.keys(W.perSec).sort() : [sec]).forEach(n => (W.perSec[n] || []).slice(0, sec === 'ALL' ? 3 : 10).forEach((s, i) => cand.push({ s: s, kind: 'early', rank: i + 1, on: i < 3 })));
+  W.exemplars.forEach(s => cand.push({ s: s, kind: 'exemplar', on: false }));
+  if (!cand.length) return toast('No awardees yet for this period.');
+  const ord = ['1st', '2nd', '3rd'];
+  sheet(`<h4>Certificates — ${esc(p.label)}</h4><div class="note">Top 3 early birds per section are ticked. Add WATCH exemplars if you wish.</div>
+    ${cand.map((c, i) => `<label class="pick"><input type="checkbox" data-c="${i}" ${c.on ? 'checked' : ''}><span style="flex:1">${esc(c.s.name)}<br><span class="note">${esc(c.s.section)} · ${c.kind === 'early' ? 'Early Bird ' + (ord[c.rank - 1] || c.rank + 'th') + ' · ' + c.s.early + ' early days' : 'WATCH Exemplar · perfect time record'}</span></span></label>`).join('')}
+    <div class="opt"><button class="btn gold" id="cGo">Make certificates</button></div>`);
+  $('#cGo').onclick = () => {
+    const pick = [...document.querySelectorAll('#sheet [data-c]')].filter(b => b.checked).map(b => cand[+b.dataset.c]);
+    if (!pick.length) return toast('Tick at least one learner.');
+    closeSheet(); printCerts(pick, p, W);
+  };
+}
+function printCerts(list, p, W) {
+  const S = A.boot.settings, ord = ['First', 'Second', 'Third'];
+  const logo = f => `<img src="${f}" alt="" onerror="this.style.visibility='hidden'">`;
+  paper(list.map(c => { const s = c.s, i = secInfo(s.section);
+    const title = c.kind === 'early' ? 'Early Bird Award' : 'WATCH Exemplar Award';
+    const place = c.kind === 'early' && c.rank <= 3 ? `<div class="cplace">${ord[c.rank - 1]} Place · ${esc(s.section)}</div>` : '';
+    const why = c.kind === 'early'
+      ? `for arriving early on <b>${s.early}</b> of <b>${s.present}</b> school days attended, with an average arrival time of <b>${esc(hmOf(s.avgArr))}</b>`
+      : `for keeping a perfect time record — present on all <b>${s.present}</b> class days, never late, and never leaving class`;
+    return `<div class="cert"><div class="cin">
+      <div class="clh">${logo('logo-deped.png')}<div><div>Republic of the Philippines · Department of Education</div><div>${esc(S.regionName || S.region)} · Schools Division of ${esc(S.division)}</div><b>${esc(S.school)}</b></div>${logo('logo-school.png')}</div>
+      <div class="ctitle">Certificate of Recognition</div><div class="csub">is proudly presented to</div>
+      <div class="cname">${esc(s.s.first + ' ' + (s.s.middle && s.s.middle !== '-' ? s.s.middle.charAt(0) + '. ' : '') + s.s.last)}</div>
+      <div class="csub">${esc([i.grade, s.section].filter(Boolean).join(' — '))}</div>
+      <div class="caward">${title}</div>${place}
+      <p class="cwhy">${why}, during <b>${esc(p.label)}</b>, showing exemplary time consciousness and honesty in support of <b>WATCH: We Advocate Time Consciousness and Honesty</b>.</p>
+      <p class="cdate">Given this ${esc(niceDate(today()))} at ${esc(S.school)}.</p>
+      <div class="csign"><div><b>${esc(i.adviser)}</b>Class Adviser</div><div><b>${esc(S.watch)}</b>WATCH Coordinator</div><div><b>${esc(S.principal)}</b>School Head</div></div>
+    </div></div>`; }).join(''), true);
+}
+
 /* ───────── CARE (interventions) ───────── */
 const TIERS = { home: ['Home visitation', 'For home visit'], counsel: ['Counseling', 'For counseling'], monitor: ['Monitor', 'Watch list'] };
 async function vCare() {
@@ -1042,7 +992,12 @@ function vMore() {
 }
 
 /* ───────── printable reports ───────── */
-function paper(html) { $('#paper').innerHTML = html; $('#print').hidden = false; $('#print').scrollTop = 0; }
+function paper(html, landscape) {
+  $('#paper').innerHTML = html; $('#paper').classList.toggle('land', !!landscape);
+  let st = $('#pgsz'); if (!st) { st = document.createElement('style'); st.id = 'pgsz'; document.head.appendChild(st); }
+  st.textContent = landscape ? '@page{size:A4 landscape;margin:8mm}' : '';
+  $('#print').hidden = false; $('#print').scrollTop = 0;
+}
 $('#pclose').onclick = () => $('#print').hidden = true;
 $('#pgo').onclick = () => window.print();
 function docHead(title, sec, period) {
@@ -1147,7 +1102,7 @@ const DEMO = (function () {
       if (!streak && rnd() > risk) { const tm = '07:' + pad(20 + Math.floor(rnd() * 39)); recs.push([d, s.id, rnd() < (i % 16 === 9 ? .5 : .06) ? 'L' : 'P', tm, 'scan', 'I' + tm + (i % 16 === 2 && rnd() < .5 ? ' O10:05 I10:25' : i % 16 === 11 && rnd() < .3 ? ' O14:10' : ' O16:0' + (i % 9))]); } });
     d = coreAdd(d, 1); }
   const t = today(), y = +t.slice(0, 4), boot = { settings: { school: 'Samal Senior High School (demo data)', schoolId: '341526', district: 'Samal', division: 'Island Garden City of Samal', region: 'Region XI',
-    sy: y + ' - ' + (y + 1), principal: 'School Head Name', lis: 'LIS Coordinator Name', late: '07:45', dismiss: '16:00', lunchS: '12:00', lunchE: '13:00', cutMin: '30', regionName: 'Davao Region', address: 'Sitio Pasig, Brgy. Peñaplata, District II, Island Garden City of Samal', t1s: coreAdd(t, -150), t1e: coreAdd(t, -61), t2s: coreAdd(t, -60), t2e: coreAdd(t, 30), t3s: coreAdd(t, 31), t3e: coreAdd(t, 120), cutoff: '' },
+    sy: y + ' - ' + (y + 1), principal: 'School Head Name', lis: 'LIS Coordinator Name', late: '07:45', earlyMin: '15', watch: 'WATCH Coordinator Name', dismiss: '16:00', lunchS: '12:00', lunchE: '13:00', cutMin: '30', regionName: 'Davao Region', address: 'Sitio Pasig, Brgy. Peñaplata, District II, Island Garden City of Samal', t1s: coreAdd(t, -150), t1e: coreAdd(t, -61), t2s: coreAdd(t, -60), t2e: coreAdd(t, 30), t3s: coreAdd(t, 31), t3e: coreAdd(t, 120), cutoff: '' },
     sections: sections, students: students, noClass: {}, sched: {}, presets: [{ name: 'Half day — morning only', late: '', dismiss: '12:00' }, { name: 'Half day — afternoon only', late: '13:00', dismiss: '' }], log: [] };
   return {
     apiBoot: () => JSON.parse(JSON.stringify(boot)), apiRecords: (a, b) => recs.filter(r => r[0] >= a && r[0] <= b),
