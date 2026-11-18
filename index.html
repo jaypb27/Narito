@@ -126,6 +126,10 @@ linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(
 .finder .start .btn{font-size:17px;padding:16px 26px}
 #res{border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);min-height:76px}
 #res .ic{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:24px;font-weight:800;flex:none;background:#eae4d6;color:var(--muted)}
+#res .ph{width:84px;height:84px;border-radius:16px;object-fit:cover;flex:none;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.18);cursor:zoom-in}
+#res .noph{font-size:11.5px;color:var(--muted);display:block;margin-top:3px;font-style:italic}
+.av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex:none;background:#e3ddd0;display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--muted)}
+.bigph{width:100%;max-width:300px;aspect-ratio:1/1;object-fit:cover;border-radius:22px;display:block;margin:12px auto;box-shadow:0 4px 18px rgba(0,0,0,.18)}
 #res b{display:block;font-size:17px;line-height:1.2} #res span{font-size:13px;color:var(--muted)}
 #res.ok{background:var(--mint);border-color:#a9d8c5} #res.ok .ic{background:var(--leaf);color:#fff}
 #res.late{background:var(--goldbg);border-color:#efd58b} #res.late .ic{background:var(--gold);color:var(--ink)}
@@ -204,7 +208,8 @@ linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(
 #paper .ids{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 #paper .id{border:1.5px solid #0d2f2d;border-radius:10px;padding:8px;text-align:center;page-break-inside:avoid;break-inside:avoid}
 #paper .id .s{font-size:8.5px;font-weight:bold;letter-spacing:.06em;text-transform:uppercase;background:#0d2f2d;color:#fff;margin:-8px -8px 6px;padding:5px;border-radius:8px 8px 0 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-#paper .id img{width:74%;image-rendering:pixelated} #paper .id .n{font-weight:bold;font-size:11.5px;line-height:1.15;min-height:27px}
+#paper .id img.qr{width:74%;image-rendering:pixelated}
+#paper .id .pq{display:flex;gap:5px;align-items:center;justify-content:center} #paper .id .pq img.qr{width:56%} #paper .id img.pf{width:40%;aspect-ratio:1/1;object-fit:cover;border-radius:6px} #paper .id .n{font-weight:bold;font-size:11.5px;line-height:1.15;min-height:27px}
 #paper .id .m{font-size:9px;color:#333}
 @media print{
   body{background:#fff} #app,#login,#shade,#toast,#print .bar{display:none!important}
@@ -562,6 +567,7 @@ async function login(pin, silent) {
   const t = LS.get('recToday', null);
   if (t && t.d === today()) A.rec[t.d] = t.m;
   applyQueue();
+  A.photos = A.photos || {}; loadPhotos();
   $('#login').hidden = true; $('#app').hidden = false;
   go('scan'); pill(); sync(); refreshToday();
 }
@@ -582,7 +588,92 @@ async function diagnose(detail) {
 $('#go').onclick = () => login($('#pin').value.trim());
 $('#pin').onkeydown = e => { if (e.key === 'Enter') $('#go').click(); };
 
-/* ───────── records, queue, sync ───────── */
+/* ───────── learner photos: kept on the phone (IndexedDB) for offline checks, master copy in the Photos tab ───────── */
+const PDB = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    try { const q = indexedDB.open('narito', 1); q.onupgradeneeded = () => q.result.createObjectStore('photos'); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }
+    catch (e) { rej(e); } }));
+  const run = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction('photos', mode); fn(t.objectStore('photos')); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); };
+  return {
+    all: async () => { const db = await open(); return new Promise((res, rej) => { const out = {}, c = db.transaction('photos').objectStore('photos').openCursor();
+      c.onsuccess = () => { const k = c.result; if (k) { out[k.key] = k.value; k.continue(); } else res(out); }; c.onerror = () => rej(c.error); }); },
+    put: (id, v) => run('readwrite', st => st.put(v, id)),
+    del: id => run('readwrite', st => st.delete(id)),
+    clear: () => run('readwrite', st => st.clear())
+  };
+})();
+const photoOf = id => (A.photos || {})[id] || '';
+const initials = s => ((s.first || '').charAt(0) + (s.last || '').charAt(0)).toUpperCase();
+const av = s => photoOf(s.id) ? `<img class="av" src="${photoOf(s.id)}" alt="">` : `<span class="av">${esc(initials(s))}</span>`;
+async function loadPhotos() {
+  try { A.photos = await PDB.all(); } catch (e) { A.photos = A.photos || {}; }
+  syncPhotos();
+}
+async function syncPhotos() {
+  if (!navigator.onLine || A.phSyncing) return;
+  A.phSyncing = true;
+  try {
+    const r = await call('apiPhotos', LS.get('phSince', ''));
+    for (const p of r.photos) { A.photos[p[0]] = p[1]; try { await PDB.put(p[0], p[1]); } catch (e) {} }
+    const keep = {}; r.ids.forEach(id => keep[id] = 1);
+    for (const id of Object.keys(A.photos)) if (!keep[id]) { delete A.photos[id]; try { await PDB.del(id); } catch (e) {} }
+    LS.set('phSince', r.now);
+  } catch (e) {}
+  A.phSyncing = false;
+}
+/* Square, 180 px JPEG (about 10 KB). Portrait photos are cropped a little above centre to keep the face. */
+async function makeThumb(file) {
+  let img;
+  try { img = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (e) { img = await createImageBitmap(file); }
+  const s = Math.min(img.width, img.height), sx = (img.width - s) / 2, sy = img.height > img.width ? (img.height - s) * 0.3 : (img.height - s) / 2;
+  const c = document.createElement('canvas'); c.width = c.height = 180;
+  const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, sx, sy, s, s, 0, 0, 180, 180);
+  let q = 0.78, out = c.toDataURL('image/jpeg', q);
+  while (out.length > 40000 && q > 0.4) { q -= 0.1; out = c.toDataURL('image/jpeg', q); }
+  return out;
+}
+function showPhoto(id) {
+  const s = stuById(id); if (!s) return;
+  sheet(`<h4>${esc(coreName(s))}</h4><div class="note">${esc(s.section)} · ${esc(s.id)}</div>
+    ${photoOf(id) ? `<img class="bigph" src="${photoOf(id)}" alt="">` : '<div class="warn" style="margin-top:12px">No photo on file for this learner.</div>'}
+    <div class="note" style="text-align:center">Check that the learner holding the card is the person in the photo.</div>
+    <div class="opt"><button class="btn" onclick="closeSheet()">OK</button></div>`);
+}
+function photoManager(sec) {
+  if (!sec) return toast('Choose a section.');
+  const list = roster(sec, today()), have = list.filter(s => photoOf(s.id)).length;
+  sheet(`<h4>Learner photos — ${esc(sec)}</h4><div class="note">Head and shoulders, facing the camera, plain background. ${have} of ${list.length} learners have a photo.</div>
+    <input type="file" id="phIn" accept="image/*" hidden>
+    <div id="phList" style="margin-top:8px">${list.map(s => `<div class="pick">${av(s)}<span style="flex:1">${esc(coreName(s))}<br><span class="note">${photoOf(s.id) ? 'Photo on file' : 'No photo yet'}</span></span>
+      <button class="btn sm ${photoOf(s.id) ? 'ghost' : ''}" data-take="${esc(s.id)}">${photoOf(s.id) ? 'Retake' : 'Take photo'}</button>
+      ${photoOf(s.id) ? `<button class="btn sm ghost" data-rm="${esc(s.id)}" style="color:var(--coral)" aria-label="Remove photo">✕</button>` : ''}</div>`).join('') || '<div class="note">No learners.</div>'}</div>`);
+  let target = '';
+  document.querySelectorAll('#sheet [data-take]').forEach(b => b.onclick = () => {
+    if (!navigator.onLine) return toast('Saving a photo needs internet.');
+    target = b.dataset.take; $('#phIn').value = ''; $('#phIn').click();
+  });
+  document.querySelectorAll('#sheet [data-rm]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.rm; if (!confirm('Remove the photo of ' + coreName(stuById(id)) + '?')) return;
+    try { await call('apiSetPhoto', id, ''); delete A.photos[id]; try { await PDB.del(id); } catch (e) {} photoManager(sec); toast('Photo removed.'); }
+    catch (e) { toast('Could not remove: ' + (e && e.message || e)); }
+  });
+  $('#phIn').onchange = async e => {
+    const f = e.target.files[0]; if (!f || !target) return;
+    let img; try { img = await makeThumb(f); } catch (x) { return toast('Could not read that picture. Try again.'); }
+    const s = stuById(target);
+    sheet(`<h4>${esc(coreName(s))}</h4><div class="note">Is the face clear and centred?</div><img class="bigph" src="${img}" alt="">
+      <div class="opt"><button class="btn" id="phSave">Save photo</button><button class="btn ghost" id="phBack">Back</button></div>`);
+    $('#phBack').onclick = () => photoManager(sec);
+    $('#phSave').onclick = async () => {
+      const b = $('#phSave'); b.disabled = true; b.textContent = 'Saving…';
+      try { await call('apiSetPhoto', target, img); A.photos[target] = img; try { await PDB.put(target, img); } catch (x) {} photoManager(sec); toast('Photo saved.'); }
+      catch (x) { b.disabled = false; b.textContent = 'Save photo'; toast('Could not save: ' + (x && x.message || x)); }
+    };
+  };
+}
+
+/* A.rec[date][id]
 /* A.rec[date][id] = [status, timeIn, source, log]   log = "I07:32 O10:05 I10:20" (in/out trail) */
 function applyEvent(q) {
   const m = A.rec[q.d] = A.rec[q.d] || {};
@@ -642,7 +733,7 @@ function pill() {
   $('span', p).textContent = !on ? 'Offline · ' + n + ' saved' : n ? n + ' to sync' : 'Synced';
 }
 $('#pill').onclick = () => { sync(); toast(navigator.onLine ? (A.queue.length ? 'Syncing…' : 'Everything is synced.') : 'Offline. Scans are safe on this phone and will sync later.'); };
-addEventListener('online', () => { pill(); sync(); refreshToday(); });
+addEventListener('online', () => { pill(); sync(); refreshToday(); syncPhotos(); });
 addEventListener('offline', pill);
 setInterval(sync, 20000);
 setInterval(() => { if (navigator.onLine && !document.hidden) refreshToday(); }, 90000);
@@ -674,7 +765,7 @@ function go(v) {
   } catch (e) { viewError(v, e); }
   scrollTo(0, 0);
 }
-const APP_V = 'NARITO build 2026-11-18c';
+const APP_V = 'NARITO build 2026-11-18d';
 /* Shows WHY a tab could not open (instead of doing nothing), with a safe repair button. */
 function viewError(v, e) {
   const names = { scan: 'Scan', today: 'Daily', reports: 'Reports', watch: 'WATCH', care: 'Care', more: 'IDs & More' };
@@ -842,7 +933,7 @@ function onCode(text) {
 function checkIn(id, src) {
   const s = stuById(id), d = today();
   if (!s) { beep(200, .3); return showRes('bad', '?', 'QR not recognised', 'This code is not in the learner list.'); }
-  if (!coreActive(s, d)) { beep(200, .3); return showRes('bad', '!', coreName(s), 'No longer enrolled in ' + s.section); }
+  if (!coreActive(s, d)) { beep(200, .3); return showRes('bad', '!', coreName(s), 'No longer enrolled in ' + s.section, id); }
   const had = (A.rec[d] || {})[id], t = nowHM(), name = coreName(s);
   if (!had || had[0] === 'E') {                       // first scan of the day = arrival
     const st = t > schedFor(d, s.section).late ? 'L' : 'P';
@@ -850,27 +941,31 @@ function checkIn(id, src) {
     lastMove[id] = Date.now();
     beep(st === 'P' ? 880 : 620, .14); if (navigator.vibrate) navigator.vibrate(st === 'P' ? 60 : [60, 60, 60]);
     const early = st === 'P' && coreMin(t) <= coreMin(schedFor(d, s.section).late) - earlyMin();
-    if (early) showRes('early', '★', name, 'Early bird! · ' + t12(t) + ' · ' + s.section);
-    else showRes(st === 'P' ? 'ok' : 'late', st === 'P' ? '✓' : 'L', name, (st === 'P' ? 'Present' : 'Late') + ' · ' + t12(t) + ' · ' + s.section);
+    if (early) showRes('early', '★', name, 'Early bird! · ' + t12(t) + ' · ' + s.section, id);
+    else showRes(st === 'P' ? 'ok' : 'late', st === 'P' ? '✓' : 'L', name, (st === 'P' ? 'Present' : 'Late') + ' · ' + t12(t) + ' · ' + s.section, id);
   } else if (U.mode !== 'gate') {
-    beep(440, .12); showRes('dup', '✓', name, 'Already recorded at ' + t12(had[1]) + ' · ' + s.section);
+    beep(440, .12); showRes('dup', '✓', name, 'Already recorded at ' + t12(had[1]) + ' · ' + s.section, id);
   } else if (Date.now() - (lastMove[id] || 0) < 60000) {
-    beep(440, .12); showRes('dup', '✓', name, 'Just scanned — wait a minute before scanning this learner again.');
+    beep(440, .12); showRes('dup', '✓', name, 'Just scanned — wait a minute before scanning this learner again.', id);
   } else {
     const k = isOut(had) ? 'I' : 'O', m = moves(had);
-    if (m.length && m[m.length - 1].t === t) { beep(440, .12); return showRes('dup', '✓', name, 'Already scanned this minute.'); }
+    if (m.length && m[m.length - 1].t === t) { beep(440, .12); return showRes('dup', '✓', name, 'Already scanned this minute.', id); }
     record({ d: d, id: id, mv: k, t: t, src: 'scan' });
     lastMove[id] = Date.now();
     const y = dayOf((A.rec[d] || {})[id], d, s.section), after = t >= schedFor(d, s.section).dismiss;
     beep(k === 'O' ? 520 : 880, .14); if (navigator.vibrate) navigator.vibrate(k === 'O' ? [40, 40, 40] : 60);
-    showRes(k === 'O' ? 'out' : 'ok', k === 'O' ? '→' : '←', name, (k === 'O' ? (after ? 'Went home' : 'Went OUT during class hours') : 'Back IN') + ' · ' + t12(t) + (y.outs ? ' · out ' + y.outs + '× today' : '') + ' · ' + s.section);
+    showRes(k === 'O' ? 'out' : 'ok', k === 'O' ? '→' : '←', name, (k === 'O' ? (after ? 'Went home' : 'Went OUT during class hours') : 'Back IN') + ' · ' + t12(t) + (y.outs ? ' · out ' + y.outs + '× today' : '') + ' · ' + s.section, id);
   }
   scanCounters();
 }
 const lastMove = {};
-function showRes(cls, ic, title, sub) {
+function showRes(cls, ic, title, sub, id) {
   const r = $('#res'); if (!r) return;
-  r.className = cls; r.innerHTML = `<div class="ic">${esc(ic)}</div><div><b>${esc(title)}</b><span>${esc(sub)}</span></div>`;
+  const ph = id && photoOf(id);
+  r.className = cls;
+  r.innerHTML = (ph ? `<img class="ph" src="${ph}" alt="Photo of ${esc(title)}">` : `<div class="ic">${esc(ic)}</div>`) +
+    `<div><b>${ph ? esc(ic) + ' ' : ''}${esc(title)}</b><span>${esc(sub)}</span>${id && !ph ? '<span class="noph">No photo on file</span>' : ''}</div>`;
+  if (ph) r.querySelector('.ph').onclick = () => showPhoto(id);
   void r.offsetWidth; r.classList.add('pop');
 }
 function beep(f, dur) {
@@ -895,7 +990,7 @@ async function vToday() {
     ${sn ? `<div class="warn"><b>Special schedule:</b> ${esc(sn)}</div>` : ''}${snSec.length ? `<div class="warn"><b>Special schedule</b> for ${esc(snSec.join(', '))}. Choose the section to see it.</div>` : ''}
     ${c.cut || c.out ? `<p class="note" style="margin:-4px 0 12px"><b style="color:#8a1f66">${c.cut}</b> cutting classes · <b style="color:#274c8f">${c.out}</b> outside now</p>` : ''}
     <div class="seg">${[['A', 'Absent'], ['L', 'Late'], ['P', 'Present'], ['O', 'In/Out']].map(x => `<button data-t="${x[0]}" class="${U.tab === x[0] ? 'on' : ''}">${x[1]} (${groups[x[0]].length})</button>`).join('')}</div>
-    <div class="list">${groups[U.tab].map(x => `<button class="li" data-id="${esc(x.s.id)}"><span class="nm">${esc(coreName(x.s))}<small>${esc(x.s.section)}${sub(x)}${x.r && x.r[2] === 'manual' ? ' · manual' : ''}</small></span>${badge(x)}</button>`).join('') || '<div class="li note">Nobody in this list.</div>'}</div>
+    <div class="list">${groups[U.tab].map(x => `<button class="li" data-id="${esc(x.s.id)}">${av(x.s)}<span class="nm">${esc(coreName(x.s))}<small>${esc(x.s.section)}${sub(x)}${x.r && x.r[2] === 'manual' ? ' · manual' : ''}</small></span>${badge(x)}</button>`).join('') || '<div class="li note">Nobody in this list.</div>'}</div>
     <p class="note">Tap a name to correct a status.</p>
     <div class="row"><button class="btn" id="dPrint" style="flex-basis:100%">Daily report</button><button class="btn ghost" id="dSch">Day schedule</button><button class="btn ghost" id="dNC">${nc ? 'Remove no-class day' : 'No-class day'}</button></div>`;
   $('#dSec').onchange = e => { U.sec = e.target.value; vToday(); };
@@ -908,7 +1003,7 @@ async function vToday() {
 }
 function editStatus(id, d) {
   const s = stuById(id), r = (A.rec[d] || {})[id], inSchool = r && r[0] !== 'E';
-  sheet(`<h4>${esc(coreName(s))}</h4><div class="note">${esc(s.section)} · ${esc(niceDate(d))}${r ? ' · now: ' + ({ P: 'Present', L: 'Late', E: 'Excused' })[r[0]] : ' · now: Absent'}</div>
+  sheet(`${photoOf(id) ? `<img class="bigph" src="${photoOf(id)}" alt="" style="max-width:150px;margin:0 0 10px">` : ''}<h4>${esc(coreName(s))}</h4><div class="note">${esc(s.section)} · ${esc(niceDate(d))}${r ? ' · now: ' + ({ P: 'Present', L: 'Late', E: 'Excused' })[r[0]] : ' · now: Absent'}</div>
     ${inSchool && moves(r).length ? `<div class="note" style="margin-top:6px"><b>In/out:</b> ${esc(trail(r))}${dayOf(r, d, s.section).outs ? ' · went out ' + dayOf(r, d, s.section).outs + '× · ' + mins(dayOf(r, d, s.section).minOut) + ' outside during class hours' : ''}${dayOf(r, d, s.section).cut ? ' · <b style="color:#8a1f66">cutting classes</b>' : ''}</div>` : ''}
     <div class="opt"><button class="btn" data-s="P">Present</button><button class="btn gold" data-s="L">Late / Tardy</button>
     <button class="btn ghost" data-s="E">Excused absence</button><button class="btn ghost" data-s="X" style="color:var(--coral)">Absent</button>
@@ -1272,6 +1367,8 @@ function vMore() {
       <button class="btn gold" id="instM" style="width:100%">⤓ Install NARITO</button></div>
     <div class="card"><b>QR ID cards</b><div class="note" style="margin:2px 0 10px">One card per learner with name, section and personal QR. Print all, or only new learners. Existing cards never change.</div>
       <div class="row"><select id="qSec" aria-label="Section">${secOpts(U.sec === 'ALL' ? '' : U.sec, false)}</select><button class="btn" id="qGo">Make ID cards</button></div></div>
+    <div class="card"><b>Learner photos</b><div class="note" style="margin:2px 0 10px">Shown when a card is scanned, so you can check that the learner holding it is the owner. ${Object.keys(A.photos || {}).length} photo(s) on this phone.</div>
+      <div class="row"><select id="phSec" aria-label="Section">${secOpts(U.sec === 'ALL' ? '' : U.sec, false)}</select><button class="btn" id="phGo">Take photos</button></div></div>
     <div class="card"><b>School schedule</b><div class="note" style="margin:2px 0 10px">Regular: late after ${esc(t12(S.late))}, dismissal ${esc(t12(S.dismiss))}. ${A.boot.sections.filter(s => s.late || s.dismiss).length} section(s) with their own times · ${(A.boot.presets || []).length} preset(s).</div>
       <button class="btn ghost" id="mSch" style="width:100%">Edit school schedule</button></div>
     <div class="card"><b>No-class days</b><div class="note" style="margin:2px 0 10px">Holidays and suspensions are left out of every report.</div>
@@ -1286,12 +1383,13 @@ function vMore() {
     <p class="note" style="text-align:center;margin-top:14px"><b style="color:var(--ink);letter-spacing:.1em">NARITO</b> · <i>Bawat pagdalo, binibilang. Bawat pagliban, tinutugunan.</i><br>Developed by <b style="color:var(--ink)">Joy P. Bacala</b>, Teacher I · Samal Senior High School</p>`;
   $('#qGo').onclick = () => pickIds($('#qSec').value);
   $('#mSch').onclick = schoolSchedule;
+  $('#phGo').onclick = () => photoManager($('#phSec').value);
   $('#instM').onclick = installApp; showInstall();
   $('#nAdd').onclick = () => noClass($('#nDate').value, false);
   document.querySelectorAll('[data-d]').forEach(b => b.onclick = () => noClass(b.dataset.d, true));
   $('#mSync').onclick = () => $('#pill').click();
-  $('#mRef').onclick = async () => { try { A.boot = await call('apiBoot'); A.secT = null; LS.set('boot', A.boot); toast('Learner list updated.'); vMore(); } catch (e) { toast('Needs internet.'); } };
-  $('#mOut').onclick = () => { if (A.queue.length && !confirm(A.queue.length + ' scan(s) are not synced yet. They stay on this phone. Log out anyway?')) return; LS.set('pin', ''); location.reload(); };
+  $('#mRef').onclick = async () => { try { A.boot = await call('apiBoot'); A.secT = null; LS.set('boot', A.boot); await syncPhotos(); toast('Learner list and photos updated.'); vMore(); } catch (e) { toast('Needs internet.'); } };
+  $('#mOut').onclick = () => { if (A.queue.length && !confirm(A.queue.length + ' scan(s) are not synced yet. They stay on this phone. Log out anyway?')) return; LS.set('pin', ''); LS.set('phSince', ''); PDB.clear().catch(() => {}).then(() => location.reload()); };
 }
 
 /* ───────── printable reports ───────── */
@@ -1382,7 +1480,7 @@ function printIds(sec, ids) {
   const S = A.boot.settings, i = secInfo(sec);
   if (!roster(sec, today()).length) return toast('No learners with a Student ID in ' + sec + '. Check the Students tab, then tap Refresh learner list.');
   const cards = roster(sec, today()).filter(s => !ids || ids.indexOf(s.id) > -1).map(s => { const q = qrcode(0, 'M'); q.addData('NARITO:' + s.id); q.make();
-    return `<div class="id"><div class="s">${esc(S.school)}</div><img src="${q.createDataURL(6, 10)}" alt=""><div class="n">${esc(coreName(s))}</div><div class="m">${esc([i.grade, sec].filter(Boolean).join(' · '))}<br>${esc(s.id)} · SY ${esc(S.sy)}</div></div>`; });
+    return `<div class="id"><div class="s">${esc(S.school)}</div>${photoOf(s.id) ? `<div class="pq"><img class="pf" src="${photoOf(s.id)}" alt=""><img class="qr" src="${q.createDataURL(6, 10)}" alt=""></div>` : `<img class="qr" src="${q.createDataURL(6, 10)}" alt="">`}<div class="n">${esc(coreName(s))}</div><div class="m">${esc([i.grade, sec].filter(Boolean).join(' · '))}<br>${esc(s.id)} · SY ${esc(S.sy)}</div></div>`; });
   paper(`<div class="ids">${cards.join('')}</div>`);
 }
 
@@ -1420,6 +1518,7 @@ const DEMO = (function () {
     apiSaveSchedule: o => { Object.assign(boot.settings, { late: o.late, dismiss: o.dismiss, lunchS: o.lunchS, lunchE: o.lunchE, cutMin: o.cutMin });
       boot.sections.forEach(s => { const x = o.sections[s.name]; if (x) { s.late = x.late; s.dismiss = x.dismiss; } }); return JSON.parse(JSON.stringify(boot)); },
     apiNoClass: (dd, why) => { if (why) boot.noClass[dd] = why; else delete boot.noClass[dd]; return Object.assign({}, boot.noClass); },
+    apiPhotos: () => ({ now: '', photos: [], ids: Object.keys(A.photos || {}) }), apiSetPhoto: () => ({ ok: true }),
     apiLogIntervention: () => true, apiSf2: () => { throw new Error('SF2 is created inside your Google Sheet (not available in demo).'); }
   };
 })();
