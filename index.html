@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d2f2d">
+<title>NARITO — Attendance</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
+<style>
+:root{--ink:#0d2f2d;--green:#12564f;--leaf:#1f8a70;--mint:#dcefe7;--paper:#f5f1e8;--card:#fffdf8;--gold:#f0a81c;--goldbg:#fdf0cf;
+--coral:#d2473d;--coralbg:#fbe1dd;--line:#e4dccb;--muted:#667773;--r:18px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--paper);color:var(--ink);font-size:15px;line-height:1.4}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+[hidden]{display:none!important}
+.wrap{max-width:620px;margin:0 auto}
+
+/* brand */
+.mark{width:44px;height:44px;border-radius:13px;background:var(--gold);display:grid;place-items:center;flex:none}
+.mark svg{width:28px;height:28px}
+.brand{font-weight:800;letter-spacing:.14em}
+.tag{font-style:italic;opacity:.8}
+
+/* login */
+#login{min-height:100%;background:radial-gradient(90% 55% at 50% 0%,#1f7468 0%,transparent 70%),linear-gradient(180deg,#103a37,var(--ink) 55%);color:#fff;display:flex;align-items:center;padding:28px 22px}
+#login .box{width:100%;max-width:400px;margin:0 auto;text-align:center}
+#login .school{font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#bfe3d6;margin-bottom:22px}
+#login .mark{width:84px;height:84px;border-radius:26px;margin:0 auto 16px;box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 0 8px rgba(240,168,28,.14)}
+#login .mark svg{width:54px;height:54px}
+#login .brand{font-size:44px;line-height:1;letter-spacing:.2em;margin-right:-.2em}
+#login .mean{font-size:12.5px;line-height:1.5;color:#cfe3dc;margin:10px auto 0;max-width:310px}
+#login .mean b{color:var(--gold);font-weight:800}
+#login .tag{font-size:17px;line-height:1.35;margin:14px auto 0;color:#ffd98a;opacity:1;max-width:330px}
+#login .tagen{font-size:12px;color:#a9c8be;margin-top:4px}
+.feats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:20px 0 4px}
+.feats span{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12.5px;font-weight:700;padding:9px 8px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13)}
+.feats svg{width:16px;height:16px;flex:none;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.plabel{display:block;margin-top:22px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bfe3d6}
+#pin{width:100%;margin-top:8px;padding:15px;border-radius:16px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;
+font-size:26px;letter-spacing:.4em;text-align:center;outline:none}
+#pin::placeholder{color:rgba(255,255,255,.3);letter-spacing:.1em}
+#pin:-webkit-autofill,#api:-webkit-autofill{-webkit-text-fill-color:#fff;caret-color:#fff;box-shadow:0 0 0 100px #1b4541 inset;transition:background-color 9999s}
+#pin:focus,#api:focus{border-color:var(--gold)}
+#api{width:100%;margin-top:18px;padding:13px;border-radius:14px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font-size:13px;outline:none}
+#go{width:100%;margin-top:12px;padding:16px;border-radius:16px;background:var(--gold);color:var(--ink);font-weight:800;font-size:17px;box-shadow:0 8px 20px rgba(240,168,28,.25)}
+.credit{font-size:11.5px;color:#a9c8be;margin-top:18px;line-height:1.6}
+.credit b{color:#fff}
+#login .inst{margin-top:6px;padding:11px 16px;border-radius:14px;border:1.5px solid rgba(255,255,255,.3);color:#fff;font-weight:700;font-size:14px;width:100%}
+#lmsg{min-height:22px;margin-top:12px;color:#ffc7c0;font-weight:600}
+
+/* shell */
+#app{min-height:100%;padding-bottom:86px}
+header{background:var(--ink);color:#fff;position:sticky;top:0;z-index:5}
+header .wrap{display:flex;align-items:center;gap:12px;padding:12px 16px}
+header .brand{font-size:18px;line-height:1.1}
+header .hb{min-width:0} header .tag{font-size:11px;line-height:1.25;color:#ffd98a}
+#pill{margin-left:auto;font-size:12px;font-weight:700;padding:7px 11px;border-radius:99px;background:rgba(255,255,255,.12);display:flex;gap:6px;align-items:center;white-space:nowrap}
+#pill i{width:8px;height:8px;border-radius:50%;background:#62e0a9}
+#pill.wait i{background:var(--gold)} #pill.off i{background:#ff8a80}
+main{padding:16px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);z-index:6;padding-bottom:env(safe-area-inset-bottom)}
+nav .wrap{display:flex}
+nav button{flex:1;min-width:0;padding:9px 0 10px;font-size:10.5px;white-space:nowrap;font-weight:700;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
+nav svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--green)}
+nav button.on svg{stroke:var(--leaf)}
+
+/* pieces */
+h2{font-size:21px;margin:2px 0 12px;font-weight:800;letter-spacing:-.01em}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:20px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1;min-width:0}
+select,input[type=date],input[type=month],input[type=text],input[type=time],input[type=number],input[type=search],textarea{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;outline:none;min-height:44px}
+select:focus,input:focus,textarea:focus{border-color:var(--leaf)}
+.btn{padding:12px 14px;border-radius:13px;background:var(--green);color:#fff;font-weight:700;text-align:center;min-height:44px}
+.btn.gold{background:var(--gold);color:var(--ink)} .btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn.sm{padding:8px 12px;min-height:36px;font-size:13px;flex:none}
+.btn:disabled{opacity:.45}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tiles.four{grid-template-columns:repeat(2,1fr)}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 12px}
+.tile b{display:block;font-size:25px;font-weight:800;line-height:1.1}
+.tile span{font-size:11.5px;color:var(--muted);font-weight:600}
+.tile.o b{color:#3566c0} .tile.p b{color:var(--leaf)} .tile.l b{color:#b97800} .tile.a b{color:var(--coral)}
+.note{font-size:13px;color:var(--muted)}
+.warn{background:var(--goldbg);border:1px solid #efd58b;border-radius:13px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.badge{font-size:11px;font-weight:800;padding:4px 9px;border-radius:99px;flex:none;white-space:nowrap}
+.b-o{background:#dfe8f7;color:#274c8f} .b-c{background:#f7dcef;color:#8a1f66} .b-p{background:var(--mint);color:var(--green)} .b-l{background:var(--goldbg);color:#8a5a00} .b-a{background:var(--coralbg);color:#9c2b23} .b-e{background:#e7e4f5;color:#4a3f8f}
+.list{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.li{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--line);width:100%;text-align:left}
+.li:first-child{border-top:0}
+.li .nm{flex:1;min-width:0;font-weight:600;font-size:14px}
+.li .nm small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.seg{display:flex;background:#eae4d6;border-radius:13px;padding:4px;margin-bottom:12px}
+.seg button{flex:1;padding:8px 4px;border-radius:10px;font-weight:700;font-size:13px;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:right;padding:8px 6px;border-bottom:1px solid var(--line)}
+table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t tr:last-child td{border-bottom:0}
+.scroll{overflow-x:auto}
+
+/* scanner */
+.finder{position:relative;border-radius:24px;overflow:hidden;background:#06201e;aspect-ratio:1/1;max-height:52vh;margin:0 auto 12px;width:100%}
+.finder video{width:100%;height:100%;object-fit:cover;display:block}
+.finder .corners{position:absolute;inset:14%;pointer-events:none;
+background:linear-gradient(var(--gold),var(--gold)) 0 0/34px 4px,linear-gradient(var(--gold),var(--gold)) 0 0/4px 34px,
+linear-gradient(var(--gold),var(--gold)) 100% 0/34px 4px,linear-gradient(var(--gold),var(--gold)) 100% 0/4px 34px,
+linear-gradient(var(--gold),var(--gold)) 0 100%/34px 4px,linear-gradient(var(--gold),var(--gold)) 0 100%/4px 34px,
+linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(--gold),var(--gold)) 100% 100%/4px 34px;background-repeat:no-repeat}
+.finder .start{position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-align:center;padding:20px}
+.finder .start .btn{font-size:17px;padding:16px 26px}
+#res{border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);min-height:76px}
+#res .ic{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:24px;font-weight:800;flex:none;background:#eae4d6;color:var(--muted)}
+#res b{display:block;font-size:17px;line-height:1.2} #res span{font-size:13px;color:var(--muted)}
+#res.ok{background:var(--mint);border-color:#a9d8c5} #res.ok .ic{background:var(--leaf);color:#fff}
+#res.late{background:var(--goldbg);border-color:#efd58b} #res.late .ic{background:var(--gold);color:var(--ink)}
+#res.early{background:linear-gradient(120deg,#fff3d1,#dcefe7);border-color:#efd58b} #res.early .ic{background:var(--gold);color:var(--ink)}
+#res.out{background:#dfe8f7;border-color:#b3c6ea} #res.out .ic{background:#3566c0;color:#fff}
+#res.dup{background:#eceae4} #res.bad{background:var(--coralbg);border-color:#f0b4ad} #res.bad .ic{background:var(--coral);color:#fff}
+@media (prefers-reduced-motion:no-preference){#res.pop{animation:pop .25s ease-out}@keyframes pop{from{transform:scale(.96)}to{transform:scale(1)}}}
+
+/* care */
+.care{border-left:6px solid var(--line)}
+.care.home{border-left-color:var(--coral)} .care.counsel{border-left-color:var(--gold)} .care.monitor{border-left-color:var(--leaf)}
+.care .who{font-weight:800;font-size:15.5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.wh{background:linear-gradient(135deg,var(--ink),#1b6a60);color:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.wh b{font-size:24px;letter-spacing:.18em;display:block} .wh span{font-size:12.5px;color:#ffd98a}
+.wh .ac{color:var(--gold);font-weight:800}
+.wh svg{position:absolute;right:-8px;top:-6px;width:96px;height:96px;stroke:rgba(255,255,255,.12);fill:none;stroke-width:1.6}
+.rk{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none;background:#eee8da;color:var(--ink)}
+.rk.r1{background:#f0c24b} .rk.r2{background:#d9dde0} .rk.r3{background:#e8b98f}
+.li .val{text-align:right;font-weight:800;font-size:14px;flex:none} .li .val small{display:block;font-weight:600;color:var(--muted);font-size:11px}
+.pchip{font-size:13px;font-weight:700;border:1.5px solid var(--line);border-radius:99px;padding:8px 12px;background:#fff}
+.pchip.on{border-color:var(--leaf);background:var(--mint);color:var(--green)}
+.pick{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--line);font-size:14px}
+.pick input{width:20px;height:20px;accent-color:var(--leaf);flex:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid2 label,.lbl{font-size:12px;font-weight:700;color:var(--muted);display:block}
+.secrow{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:13px;font-weight:700}
+.secrow input{min-height:38px;padding:6px 8px}
+.chip{font-size:11.5px;font-weight:700;background:#eee8da;border-radius:99px;padding:4px 9px}
+.care p{margin:6px 0;font-size:13.5px}
+.care .log{font-size:12.5px;color:var(--green);background:var(--mint);border-radius:10px;padding:6px 10px;margin-top:6px}
+
+/* bottom sheet + toast */
+#shade{position:fixed;inset:0;background:rgba(8,28,26,.5);z-index:20;display:flex;align-items:flex-end}
+#sheet{background:var(--card);width:100%;max-width:620px;margin:0 auto;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:86vh;overflow:auto}
+#sheet h4{margin:0 0 4px;font-size:18px} #sheet .opt{display:grid;gap:8px;margin-top:14px}
+#toast{position:fixed;left:50%;bottom:98px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:13.5px;font-weight:600;z-index:40;max-width:90vw;text-align:center}
+
+/* printable paper */
+#print{position:fixed;inset:0;background:#8b948f;z-index:30;overflow:auto}
+#print .bar{position:sticky;top:0;background:var(--ink);padding:10px 12px;display:flex;gap:8px;z-index:2}
+#print .bar .btn{flex:1}
+#paper{background:#fff;color:#000;margin:14px auto;padding:28px;max-width:820px;font-family:Arial,Helvetica,sans-serif;font-size:11.5px;min-height:60vh}
+#paper .lh{display:flex;align-items:center;justify-content:center;gap:26px;border-bottom:2.5px solid #000;padding-bottom:8px;position:relative}
+#paper .lh::after{content:"";position:absolute;left:0;right:0;bottom:-5px;border-bottom:.8px solid #000}
+#paper .lh img{width:80px;height:80px;object-fit:contain;flex:none} #paper .lh .sp{width:80px;flex:none}
+#paper .lh .tx{flex:0 1 auto;text-align:center;line-height:1.22}
+#paper .lh .l1{font-size:12px;font-weight:bold} #paper .lh .l2{font-size:20px;font-weight:bold;font-family:"Old English Text MT","Times New Roman",serif}
+#paper .lh .l3{font-size:10.5px;font-weight:bold;text-transform:uppercase} #paper .lh .l4{font-size:15px;font-weight:bold;text-transform:uppercase;letter-spacing:.02em}
+#paper .lh .l5{font-size:10.5px;font-weight:bold}
+#paper h1{font-size:16px;margin:20px 0 10px;text-transform:uppercase;text-align:center;letter-spacing:.06em}
+#paper .info{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #000;border-radius:6px;overflow:hidden;margin-bottom:12px}
+#paper .info div{padding:5px 9px;border-right:1px solid #000;border-bottom:1px solid #000;font-size:11.5px;font-weight:bold;min-width:0}
+#paper .info div:nth-child(3n){border-right:0} #paper .info div:nth-last-child(-n+3){border-bottom:0}
+#paper .info span{display:block;font-size:8px;font-weight:normal;text-transform:uppercase;letter-spacing:.08em;color:#444}
+#paper .sub{font-size:11.5px}
+#paper table{width:100%;border-collapse:collapse;margin:10px 0} #paper th,#paper td{border:1px solid #000;padding:3px 5px;text-align:center;vertical-align:top}
+#paper th{background:#e9eeec} #paper td.n,#paper th.n{text-align:left}
+#paper h2{font-size:12px;margin:14px 0 2px;text-transform:uppercase;font-weight:bold;letter-spacing:0}
+#paper.land{max-width:1060px;padding:14px}
+.cert{border:3px solid #0d2f2d;padding:6px;margin:0 auto 18px;max-width:1030px;page-break-after:always;break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cert:last-child{page-break-after:auto;break-after:auto}
+.cin{border:1.5px solid #c9971c;padding:22px 40px 26px;text-align:center;background:radial-gradient(120% 90% at 50% 0%,#fffaf0,#fff 60%);min-height:640px;display:flex;flex-direction:column;align-items:center}
+.clh{display:flex;align-items:center;justify-content:center;gap:22px;font-size:11px;line-height:1.35} .clh img{width:64px;height:64px;object-fit:contain} .clh b{font-size:14px;text-transform:uppercase}
+.ctitle{font-family:Georgia,'Times New Roman',serif;font-size:40px;color:#0d2f2d;margin-top:22px;letter-spacing:.04em}
+.csub{font-size:13px;color:#444;margin-top:6px;font-style:italic}
+.cname{font-family:Georgia,'Times New Roman',serif;font-size:36px;font-weight:bold;margin-top:14px;padding:0 30px 4px;border-bottom:1.5px solid #c9971c;text-transform:uppercase;letter-spacing:.03em}
+.caward{margin-top:16px;font-size:20px;font-weight:800;color:#fff;background:#0d2f2d;padding:6px 22px;border-radius:99px;letter-spacing:.06em;text-transform:uppercase}
+.cplace{margin-top:6px;font-weight:800;color:#a67400;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.cwhy{max-width:720px;font-size:14px;line-height:1.6;margin:14px auto 0} .cdate{font-size:13px;margin:8px 0 0}
+.csign{display:flex;gap:40px;justify-content:center;margin-top:auto;padding-top:34px;width:100%} .csign div{flex:1;max-width:240px;font-size:11.5px}
+.csign b{display:block;border-bottom:1px solid #000;min-height:18px;font-size:13px;text-transform:uppercase;margin-bottom:3px}
+#paper .sign{display:flex;gap:24px;margin-top:36px;page-break-inside:avoid} #paper .sign div{flex:1;text-align:center;font-size:11px}
+#paper .sign .cap{text-align:left;margin-bottom:34px} #paper .sign b{display:block;border-bottom:1px solid #000;min-height:16px;text-transform:uppercase;font-size:12px}
+#paper .foot{margin-top:18px;font-size:9px;color:#555}
+#paper .ids{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#paper .id{border:1.5px solid #0d2f2d;border-radius:10px;padding:8px;text-align:center;page-break-inside:avoid;break-inside:avoid}
+#paper .id .s{font-size:8.5px;font-weight:bold;letter-spacing:.06em;text-transform:uppercase;background:#0d2f2d;color:#fff;margin:-8px -8px 6px;padding:5px;border-radius:8px 8px 0 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#paper .id img{width:74%;image-rendering:pixelated} #paper .id .n{font-weight:bold;font-size:11.5px;line-height:1.15;min-height:27px}
+#paper .id .m{font-size:9px;color:#333}
+@media print{
+  body{background:#fff} #app,#login,#shade,#toast,#print .bar{display:none!important}
+  #print{position:static;background:#fff;overflow:visible} #paper{margin:0;padding:0;max-width:none}
+  @page{margin:12mm}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="box">
+    <div class="school">Samal Senior High School</div>
+    <div class="mark"><svg viewBox="0 0 28 28" fill="none" stroke="#0d2f2d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V5a2 2 0 0 1 2-2h4M19 3h4a2 2 0 0 1 2 2v4M25 19v4a2 2 0 0 1-2 2h-4M9 25H5a2 2 0 0 1-2-2v-4"/><path d="M9 14.5l3.4 3.4L19.5 10.5"/></svg></div>
+    <div class="brand">NARITO</div>
+    <div class="mean"><b>N</b>urturing <b>A</b>ttendance through <b>R</b>ecording, <b>I</b>ntervention, <b>T</b>racking, and <b>O</b>utreach</div>
+    <div class="tag">“Bawat pagdalo, binibilang.<br>Bawat pagliban, tinutugunan.”</div>
+    <div class="tagen">Every attendance counted. Every absence answered.</div>
+    <div class="feats">
+      <span><svg viewBox="0 0 24 24"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10"/></svg>QR Attendance</span>
+      <span><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/></svg>Automatic SF2</span>
+      <span><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>In and Out Log</span>
+      <span><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.8C19.5 16.4 12 21 12 21z"/></svg>Early Interventions</span>
+    </div>
+    <input id="api" type="url" placeholder="Paste the Web app link (ends in /exec)" aria-label="Web app link" hidden>
+    <label class="plabel" for="pin">Enter your PIN to open</label>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="• • • • • •" aria-label="App PIN">
+    <button id="go">Open NARITO</button>
+    <div id="lmsg"></div>
+    <button class="inst" id="instL" hidden>⤓ Install NARITO on this phone</button>
+    <div class="credit">Developed by <b>Joy P. Bacala</b>, Teacher I<br>Samal Senior High School · Schools Division of Island Garden City of Samal</div>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header><div class="wrap">
+    <div class="mark"><svg viewBox="0 0 28 28" fill="none" stroke="#0d2f2d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V5a2 2 0 0 1 2-2h4M19 3h4a2 2 0 0 1 2 2v4M25 19v4a2 2 0 0 1-2 2h-4M9 25H5a2 2 0 0 1-2-2v-4"/><path d="M9 14.5l3.4 3.4L19.5 10.5"/></svg></div>
+    <div class="hb"><div class="brand">NARITO</div><div class="tag">Bawat pagdalo, binibilang. Bawat pagliban, tinutugunan.</div></div>
+    <button id="pill"><i></i><span>Synced</span></button>
+  </div></header>
+  <main class="wrap" id="view"></main>
+  <nav><div class="wrap">
+    <button data-v="scan"><svg viewBox="0 0 24 24"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10"/></svg>Scan</button>
+    <button data-v="today"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8.5 15.5l2.2 2.2 4.5-4.5"/></svg>Daily</button>
+    <button data-v="reports"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</button>
+    <button data-v="watch"><svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M10 2.5h4M12 2.5V6M18.5 6.5l1.5-1.5"/></svg>WATCH</button>
+    <button data-v="care"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.8C19.500 16.400 12 21 12 21z"/></svg>Care</button>
+    <button data-v="more"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7M17.500 17.500v.01"/></svg>IDs &amp; More</button>
+  </div></nav>
+</div>
+
+<div id="shade" hidden><div id="sheet"></div></div>
+<div id="print" hidden><div class="bar"><button class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.3)" id="pclose">Close</button><button class="btn gold" id="pgo">Print / Save as PDF</button></div><div id="paper"></div></div>
+<div id="toast" hidden></div>
+
+<script>/**
+ * NARITO — Core.gs
+ * Developed by Joy P. Bacala, Teacher I, Samal Senior High School.
+ * Pure attendance logic. The SAME code runs on the server (SF2 generation)
+ * and on the phone (reports while offline). Do not use Google services here.
+ *
+ * data = { students:[{id,last,first,middle,sex,section,enroll,enrollType,exit,exitType,remarks,...}],
+ *          records:[[date,studentId,status,time,source,log]],   status: P present, L late/tardy, E excused absence
+ *          noClass:{ 'yyyy-mm-dd': reason },
+ *          sched:{ 'yyyy-mm-dd': {late, dismiss, note} },  secTimes:{ section: {late, dismiss} },  now:{d, t} (optional: the day still running) }
+ */
+
+function coreDow(d) { var p = d.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay(); }
+
+function coreAdd(d, n) { var p = d.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + n)).toISOString().slice(0, 10); }
+
+function coreMonthEnd(ym) {
+  var p = ym.split('-');
+  return ym + '-' + ('0' + new Date(Date.UTC(+p[0], +p[1], 0)).getUTCDate()).slice(-2);
+}
+
+function coreName(s) {
+  return (s.last + ', ' + s.first + ' ' + (s.middle || '')).replace(/\s+/g, ' ').trim().replace(/,$/, '');
+}
+
+function coreActive(s, d) { return (!s.enroll || s.enroll <= d) && (!s.exit || s.exit > d); }
+
+/**
+ * In/out trail of one learner for one day, kept as text: "I07:32 O10:05 I10:20" (I = came in, O = went out).
+ * coreMoves returns it as a time-ordered list. Old rows without a trail count as one arrival at their time-in.
+ */
+function coreMoves(log, timeIn) {
+  var out = [];
+  String(log || '').split(/\s+/).forEach(function (x) { if (/^[IO]\d\d:\d\d$/.test(x)) out.push({ k: x.charAt(0), t: x.slice(1) }); });
+  if (!out.length && timeIn) out.push({ k: 'I', t: timeIn });
+  out.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; });
+  return out;
+}
+
+/** Adds one movement. Two INs (or two OUTs) in a row are treated as the same event and ignored. */
+function coreAddMove(log, k, t, timeIn) {
+  var m = coreMoves(log, timeIn), last = m[m.length - 1];
+  if (!/^\d\d:\d\d$/.test(String(t)) || (k !== 'I' && k !== 'O')) return m.map(function (x) { return x.k + x.t; }).join(' ');
+  if (last ? last.k === k : k === 'O') return m.map(function (x) { return x.k + x.t; }).join(' ');
+  m.push({ k: k, t: t });
+  m.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; });
+  return m.map(function (x) { return x.k + x.t; }).join(' ');
+}
+
+function coreMin(t) { return +String(t).slice(0, 2) * 60 + +String(t).slice(3, 5); }
+
+/**
+ * Times that apply to one section on one date. Order of priority:
+ * DaySchedule for this section → DaySchedule for all sections → the section's own LateAfter/Dismissal (Sections tab) → Settings.
+ */
+function coreSched(S, data, d, section) {
+  var sc = (data && data.sched) || {}, o = sc[d + '|' + section] || sc[d] || {}, c = ((data && data.secTimes) || {})[section] || {};
+  var ok = function (v) { return /^\d\d:\d\d$/.test(String(v || '')); };
+  return { late: ok(o.late) ? o.late : ok(c.late) ? c.late : (ok(S.late) ? S.late : '07:30'),
+    dismiss: ok(o.dismiss) ? o.dismiss : ok(c.dismiss) ? c.dismiss : (ok(S.dismiss) ? S.dismiss : '15:45'),
+    lunchS: ok(S.lunchS) ? S.lunchS : '12:00', lunchE: ok(S.lunchE) ? S.lunchE : '13:00',
+    cutMin: S.cutMin !== '' && S.cutMin != null && !isNaN(+S.cutMin) ? +S.cutMin : 30, note: o.note || '' };
+}
+
+/**
+ * What one learner's in/out trail means for one day.
+ *  outs      times the learner left BEFORE dismissal (going home after dismissal is not counted)
+ *  minOut    minutes spent outside during class hours (lunch break excluded; if not back, counted up to dismissal)
+ *  cut       cutting classes: minOut reached the limit set in Settings
+ *  leftEarly left before dismissal and did not come back
+ *  outside   currently outside (last scan was OUT), home = that OUT was at/after dismissal
+ * now = 'HH:mm' while the day is still running, otherwise null.
+ */
+function coreDay(log, timeIn, sc, now) {
+  var m = coreMoves(log, timeIn), D = coreMin(sc.dismiss), ls = coreMin(sc.lunchS), le = coreMin(sc.lunchE);
+  var end = now ? Math.min(coreMin(now), D) : D, start = m.length ? coreMin(m[0].t) : 0;
+  var span = function (a, b) {
+    a = Math.max(a, start); b = Math.min(b, end);
+    if (b <= a) return 0;
+    return (b - a) - Math.max(0, Math.min(b, le) - Math.max(a, ls));
+  };
+  var r = { outs: 0, minOut: 0, cut: false, leftEarly: false, outside: false, home: false }, outAt = null;
+  m.forEach(function (x) {
+    var t = coreMin(x.t);
+    if (x.k === 'O') { outAt = t; if (t < D) r.outs++; }
+    else if (outAt !== null) { r.minOut += span(outAt, t); outAt = null; }
+  });
+  if (outAt !== null) { r.outside = true; r.minOut += span(outAt, end); r.home = outAt >= D; r.leftEarly = outAt < D; }
+  r.cut = r.minOut >= sc.cutMin && sc.cutMin > 0;
+  return r;
+}
+
+/** Default intervention thresholds (overridden by the Settings sheet). */
+function coreThresholds(t) {
+  var d = { hvStreak: 5, hvRate: 20, cStreak: 3, cRate: 10, cTardy: 5, mAbs: 2, mTardy: 3, critStreak: 10, cCut: 3, mCut: 1, earlyMin: 15 };
+  for (var k in (t || {})) if (t[k] !== '' && t[k] != null && !isNaN(+t[k])) d[k] = +t[k];
+  return d;
+}
+
+/** Decide the intervention tier of one learner from their stats. */
+function coreTier(st, th) {
+  var reasons = [], tier = '';
+  var absRate = st.enrolledDays ? (st.absent / st.enrolledDays) * 100 : 0;
+  var enough = st.enrolledDays >= 5;
+  if (st.maxStreak >= th.hvStreak) { tier = 'home'; reasons.push(st.maxStreak + ' consecutive school days absent'); }
+  if (enough && absRate >= th.hvRate) { tier = 'home'; reasons.push('absent ' + Math.round(absRate) + '% of class days (limit ' + th.hvRate + '%)'); }
+  if (!tier) {
+    if (st.maxStreak >= th.cStreak) { tier = 'counsel'; reasons.push(st.maxStreak + ' consecutive school days absent'); }
+    if (enough && absRate >= th.cRate) { tier = 'counsel'; reasons.push('absent ' + Math.round(absRate) + '% of class days'); }
+    if (st.tardy >= th.cTardy) { tier = 'counsel'; reasons.push('tardy ' + st.tardy + ' times'); }
+    if (st.cuts >= th.cCut) { tier = 'counsel'; reasons.push('cut classes ' + st.cuts + ' time' + (st.cuts > 1 ? 's' : '')); }
+  }
+  if (!tier) {
+    if (st.absent >= th.mAbs) { tier = 'monitor'; reasons.push(st.absent + ' absences'); }
+    if (st.tardy >= th.mTardy) { tier = 'monitor'; reasons.push('tardy ' + st.tardy + ' times'); }
+    if (st.cuts >= th.mCut) { tier = 'monitor'; reasons.push('cut classes ' + st.cuts + ' time' + (st.cuts > 1 ? 's' : '')); }
+  }
+  var action = {
+    home: 'Conduct a home visitation within the week and hold a parent/guardian conference. Identify the cause of absences and agree on a return-to-class plan.',
+    counsel: 'Refer for counseling with the Guidance Advocate. Notify the parent/guardian by call or letter and set a weekly attendance check-in.',
+    monitor: 'Adviser talks to the learner one-on-one. Watch attendance closely for the next two weeks.'
+  }[tier] || '';
+  var critical = st.maxStreak >= th.critStreak;
+  if (critical) action += ' AT RISK OF DROPPING OUT — elevate to the School Head.';
+  return { tier: tier, reasons: reasons, action: action, critical: critical };
+}
+
+/**
+ * Attendance statistics of ONE section between two dates (inclusive).
+ * A date is a class day when it is Mon–Fri, not listed in NoClassDays,
+ * and at least one learner of the section was recorded present that day.
+ */
+function coreCompute(data, section, from, to, thresholds) {
+  var th = coreThresholds(thresholds);
+  var studs = data.students.filter(function (s) { return s.section === section; });
+  var inSec = {}; studs.forEach(function (s) { inSec[s.id] = 1; });
+  var byStu = {}, daySet = {};
+  data.records.forEach(function (r) {
+    var d = r[0];
+    if (d < from || d > to || !inSec[r[1]]) return;
+    (byStu[r[1]] = byStu[r[1]] || {})[d] = r;
+    var w = coreDow(d);
+    if ((r[2] === 'P' || r[2] === 'L') && w >= 1 && w <= 5 && !(data.noClass || {})[d]) daySet[d] = 1;
+  });
+  var days = Object.keys(daySet).sort();
+  var daily = {}; days.forEach(function (d) { daily[d] = { M: 0, F: 0 }; });
+  var out = studs.map(function (s) {
+    var st = { id: s.id, name: coreName(s), sex: s.sex === 'F' ? 'F' : 'M', section: s.section, s: s,
+      marks: {}, times: {}, present: 0, absent: 0, tardy: 0, excused: 0, outs: 0, cuts: 0, minOut: 0, cut: {}, early: 0, earlyDates: {}, arrSum: 0, arrN: 0, enrolledDays: 0, maxStreak: 0, curStreak: 0, absDates: [] };
+    var run = 0, recs = byStu[s.id] || {};
+    days.forEach(function (d) {
+      if (!coreActive(s, d)) { st.marks[d] = ''; run = 0; return; }
+      st.enrolledDays++;
+      var r = recs[d], m = r ? r[2] : 'A';
+      if (m !== 'P' && m !== 'L' && m !== 'E') m = 'A';
+      st.marks[d] = m;
+      if (r && r[3]) st.times[d] = r[3];
+      if (r && (m === 'P' || m === 'L')) {
+        var sc = coreSched(thresholds || {}, data, d, section);
+        var dy = coreDay(r[5], r[3], sc, data.now && data.now.d === d ? data.now.t : null);
+        if (/^\d\d:\d\d$/.test(String(r[3] || ''))) {          // WATCH: arrival time and early birds
+          var arr = coreMin(r[3]);
+          st.arrSum += arr; st.arrN++;
+          if (m === 'P' && arr <= coreMin(sc.late) - th.earlyMin) { st.early++; st.earlyDates[d] = r[3]; }
+        }
+        st.outs += dy.outs; st.minOut += dy.minOut;
+        if (dy.cut) { st.cuts++; st.cut[d] = true; }
+      }
+      if (m === 'P' || m === 'L') { st.present++; daily[d][st.sex]++; run = 0; if (m === 'L') st.tardy++; }
+      else { st.absent++; st.absDates.push(d); if (m === 'E') st.excused++; run++; if (run > st.maxStreak) st.maxStreak = run; }
+    });
+    st.curStreak = run;
+    st.rate = st.enrolledDays ? (st.present / st.enrolledDays) * 100 : null;
+    st.onTime = st.present - st.tardy;
+    st.punct = st.present ? (st.onTime / st.present) * 100 : null;          // % of arrivals that were not late
+    st.earlyRate = st.present ? (st.early / st.present) * 100 : null;
+    st.avgArr = st.arrN ? st.arrSum / st.arrN : null;                      // minutes after midnight
+    st.exemplar = st.enrolledDays > 0 && st.absent === 0 && st.tardy === 0 && st.cuts === 0;   // perfect time record
+    var t = coreTier(st, th);
+    st.tier = t.tier; st.reasons = t.reasons; st.action = t.action; st.critical = t.critical;
+    return st;
+  });
+  out.sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
+  var last = days.length ? days[days.length - 1] : to;
+  var tot = { M: { att: 0, reg: 0 }, F: { att: 0, reg: 0 }, T: { att: 0, reg: 0 } };
+  days.forEach(function (d) { tot.M.att += daily[d].M; tot.F.att += daily[d].F; });
+  out.forEach(function (st) { if (coreActive(st.s, last)) tot[st.sex].reg++; });
+  tot.T.att = tot.M.att + tot.F.att; tot.T.reg = tot.M.reg + tot.F.reg;
+  ['M', 'F', 'T'].forEach(function (g) {
+    tot[g].ada = days.length ? tot[g].att / days.length : 0;
+    tot[g].pct = tot[g].reg ? (tot[g].ada / tot[g].reg) * 100 : 0;
+  });
+  return { section: section, from: from, to: to, days: days, daily: daily, students: out, totals: tot };
+}
+
+/** The "Summary" box of SF2 for one section and one month (ym = 'yyyy-mm'). r = coreCompute result of that month. */
+function coreSf2Summary(data, section, ym, cutoff, r) {
+  var from = ym + '-01', to = coreMonthEnd(ym);
+  var inMonth = function (d) { return d && d >= from && d <= to; };
+  var res = {};
+  ['M', 'F'].forEach(function (g) {
+    var studs = data.students.filter(function (s) { return s.section === section && (s.sex === 'F' ? 'F' : 'M') === g; });
+    var o = { enrolFF: 0, late: 0, registered: 0, absent5: 0, nls: 0, tOut: 0, tIn: 0, sOut: 0, sIn: 0, att: r.totals[g].att };
+    studs.forEach(function (s) {
+      if (cutoff ? coreActive(s, cutoff) : !s.enrollType) o.enrolFF++;
+      if (s.enrollType === 'Late Enrolment' && inMonth(s.enroll)) o.late++;
+      if (s.enrollType === 'Transferred In' && inMonth(s.enroll)) o.tIn++;
+      if (s.enrollType === 'Shifted In' && inMonth(s.enroll)) o.sIn++;
+      if (s.exitType === 'NLS' && inMonth(s.exit)) o.nls++;
+      if (s.exitType === 'Transferred Out' && inMonth(s.exit)) o.tOut++;
+      if (s.exitType === 'Shifted Out' && inMonth(s.exit)) o.sOut++;
+      if (coreActive(s, to)) o.registered++;
+    });
+    r.students.forEach(function (st) { if (st.sex === g && st.maxStreak >= 5) o.absent5++; });
+    res[g] = o;
+  });
+  var T = {}; for (var k in res.M) T[k] = res.M[k] + res.F[k];
+  res.T = T;
+  ['M', 'F', 'T'].forEach(function (g) {
+    var o = res[g];
+    o.pctEnrol = o.enrolFF ? (o.registered / o.enrolFF) * 100 : 0;
+    o.ada = r.days.length ? o.att / r.days.length : 0;
+    o.pctAtt = o.registered ? (o.ada / o.registered) * 100 : 0;
+  });
+  res.classDays = r.days.length;
+  return res;
+}
+
+/** Source text of every core function, injected into the phone app by doGet(). */
+function coreSource_() {
+  return [coreDow, coreAdd, coreMonthEnd, coreName, coreActive, coreMoves, coreAddMove, coreMin, coreSched, coreDay, coreThresholds, coreTier, coreCompute, coreSf2Summary]
+    .map(function (f) { return f.toString(); }).join('\n');
+}
+</script>
+<script>
+'use strict';
+const HAS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
+const DEMO_MODE = !HAS_GAS && (location.protocol === 'file:' || /[?&]demo/.test(location.search));
+let API = HAS_GAS || DEMO_MODE ? '' : String(window.NARITO_API || '').trim();
+if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(API)) API = '';
+const $ = (s, el) => (el || document).querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('narito_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('narito_' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const pad = n => ('0' + n).slice(-2);
+const today = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const nowHM = () => { const d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const t12 = t => { if (!t) return ''; const p = t.split(':'), h = +p[0]; return ((h + 11) % 12 + 1) + ':' + p[1] + (h < 12 ? ' AM' : ' PM'); };
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const niceDate = d => MONTHS[+d.slice(5, 7) - 1] + ' ' + +d.slice(8) + ', ' + d.slice(0, 4);
+const niceMonth = ym => MONTHS[+ym.slice(5, 7) - 1] + ' ' + ym.slice(0, 4);
+const DOWS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const pct = v => v == null ? '—' : (Math.round(v * 10) / 10) + '%';
+
+const A = { pin: '', boot: null, rec: {}, queue: LS.get('queue', []), loaded: {}, syncing: false,
+  dev: LS.get('dev', null) || ('D' + Math.random().toString(36).slice(2, 7)) };
+LS.set('dev', A.dev);
+const U = { wper: 'month', wday: '', mode: LS.get('mode', 'arrival'), view: 'scan', sec: 'ALL', scanSec: 'ALL', date: today(), tab: 'A', period: 'month', ym: today().slice(0, 7), sf2: null };
+
+/* ───────── server calls (or demo data when opened outside Apps Script) ───────── */
+function call(fn, ...args) {
+  return new Promise((res, rej) => {
+    if (DEMO_MODE) { try { res(DEMO[fn](...args)); } catch (e) { rej(e); } return; }
+    if (!navigator.onLine) return rej(new Error('offline'));
+    const t = setTimeout(() => rej(new Error('timeout')), 45000);
+    if (!HAS_GAS) {                                   // hosted app → JSON API of the Apps Script web app
+      fetch(API, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ fn: fn, pin: A.pin, args: args }) })
+        .then(r => r.json()).then(j => { clearTimeout(t); j && j.ok ? res(j.data) : rej(new Error(j && j.error || 'Server error')); })
+        .catch(e => { clearTimeout(t); rej(new Error('network: ' + (e && e.message || e))); });
+      return;
+    }
+    google.script.run.withSuccessHandler(v => { clearTimeout(t); res(v); })
+      .withFailureHandler(e => { clearTimeout(t); rej(e); })[fn](A.pin, ...args);
+  });
+}
+
+/* ───────── login ───────── */
+async function login(pin, silent) {
+  if (!HAS_GAS && !DEMO_MODE && !API) {
+    const u = ($('#api').value || '').trim();
+    if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)) { $('#lmsg').textContent = 'Paste the Web app link first. It starts with https://script.google.com and ends in /exec'; return; }
+    API = u; LS.set('api', u);
+  }
+  A.pin = pin;
+  $('#lmsg').textContent = silent ? '' : 'Opening…';
+  try {
+    A.boot = await call('apiBoot'); A.secT = null;
+    LS.set('boot', A.boot); LS.set('pin', pin);
+  } catch (e) {
+    const m = String(e && e.message || e);
+    const cached = LS.get('boot', null);
+    if (/PIN|LOCKED/.test(m)) { LS.set('pin', ''); $('#lmsg').textContent = /LOCKED/.test(m) ? 'Too many wrong tries. Wait 10 minutes.' : 'Wrong PIN.'; return; }
+    if (cached && LS.get('pin', '') === pin) A.boot = cached;        // offline: use the roster saved on this phone
+    else { $('#lmsg').textContent = navigator.onLine ? 'Checking the connection…' : 'No internet. Sign in once while online.'; if (navigator.onLine) $('#lmsg').textContent = await diagnose(m); return; }
+  }
+  if (!A.boot.sched) A.boot.sched = {};
+  const t = LS.get('recToday', null);
+  if (t && t.d === today()) A.rec[t.d] = t.m;
+  applyQueue();
+  $('#login').hidden = true; $('#app').hidden = false;
+  go('scan'); pill(); sync(); refreshToday();
+}
+/* Finds out WHY the Google Sheet cannot be reached, and says what to do. */
+async function diagnose(detail) {
+  if (HAS_GAS || DEMO_MODE) return 'Could not open: ' + detail;
+  const tail = ' [' + API.slice(-12, -5) + '…]';
+  try {
+    const r = await fetch(API + '?ping=1', { redirect: 'follow' }), txt = await r.text();
+    let j = null; try { j = JSON.parse(txt); } catch (e) {}
+    if (j && j.ok && j.api >= 3) return 'The Sheet answers, but signing in failed (' + detail + '). Try again.';
+    if (/doGet|Index|<html/i.test(txt) || r.ok) return 'The web app is still running OLD code. In Apps Script: paste the newest Code.gs and Core.gs, Save, then Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy.' + tail;
+    return 'The web app link answered with an error (' + r.status + '). Check the link in config.js.' + tail;
+  } catch (e) {
+    return 'Google refused the connection. In Apps Script → Deploy → Manage deployments → Edit: “Who has access” must be exactly “Anyone” (not “Anyone with Google account”), and config.js must hold the link of THAT deployment.' + tail;
+  }
+}
+$('#go').onclick = () => login($('#pin').value.trim());
+$('#pin').onkeydown = e => { if (e.key === 'Enter') $('#go').click(); };
+
+/* ───────── records, queue, sync ───────── */
+/* A.rec[date][id] = [status, timeIn, source, log]   log = "I07:32 O10:05 I10:20" (in/out trail) */
+function applyEvent(q) {
+  const m = A.rec[q.d] = A.rec[q.d] || {};
+  let r = m[q.id];
+  if (q.st === 'X') { delete m[q.id]; return; }
+  if (!r) { const s0 = q.st || 'P'; r = m[q.id] = [s0, q.t || '', q.src || 'scan', !q.mv && s0 !== 'E' && q.t ? 'I' + q.t : '']; }
+  else if (q.st && q.src === 'manual') { r[0] = q.st; if (q.t) r[1] = q.t; r[2] = 'manual'; }
+  if (q.mv && q.t) r[3] = coreAddMove(r[3], q.mv, q.t, r[0] === 'E' ? '' : r[1]);
+}
+function saveToday() { LS.set('recToday', { d: today(), m: A.rec[today()] || {} }); }
+function record(q) {
+  q.dev = A.dev;
+  applyEvent(q); if (q.d === today()) saveToday();
+  A.queue.push(q); LS.set('queue', A.queue); pill(); sync();
+}
+function applyQueue() { A.queue.forEach(applyEvent); }
+const moves = r => r ? coreMoves(r[3], r[0] === 'E' ? '' : r[1]) : [];
+const secTimes = () => { if (!A.secT) { A.secT = {}; A.boot.sections.forEach(x => A.secT[x.name] = { late: x.late, dismiss: x.dismiss }); } return A.secT; };
+const schedFor = (d, sec) => coreSched(A.boot.settings, { sched: A.boot.sched, secTimes: secTimes() }, d, sec);
+const NONE = { outs: 0, minOut: 0, cut: false, leftEarly: false, outside: false, home: false };
+const dayOf = (r, d, sec) => r && r[0] !== 'E' ? coreDay(r[3], r[1], schedFor(d, sec), d === today() ? nowHM() : null) : NONE;
+const earlyMin = () => { const v = +A.boot.settings.earlyMin; return isNaN(v) || A.boot.settings.earlyMin === '' ? 15 : v; };
+const isOut = r => { const m = moves(r); return m.length > 0 && m[m.length - 1].k === 'O'; };
+const mins = n => n >= 60 ? Math.floor(n / 60) + ' h ' + (n % 60 ? n % 60 + ' min' : '') : n + ' min';
+const schedEntry = (d, sec) => { const m = A.boot.sched || {}; return m[d + '|' + sec] || m[d] || null; };
+const schedNote = (d, sec) => { const o = schedEntry(d, sec); return o ? (o.note || 'Special schedule') + (o.late ? ' · late after ' + t12(o.late) : '') + (o.dismiss ? ' · dismissal ' + t12(o.dismiss) : '') : ''; };
+const sectionsWithSpecial = d => Object.keys(A.boot.sched || {}).filter(k => k.indexOf(d + '|') === 0).map(k => k.slice(11));
+const trail = r => moves(r).map(x => (x.k === 'I' ? 'In ' : 'Out ') + t12(x.t)).join(' → ');
+async function sync() {
+  if (A.syncing || !A.queue.length || !navigator.onLine) return pill();
+  A.syncing = true;
+  const batch = A.queue.slice(0, 300);
+  try {
+    await call('apiSync', batch);
+    A.queue = A.queue.filter(q => batch.indexOf(q) < 0);
+    LS.set('queue', A.queue);
+  } catch (e) { if (/PIN/.test(String(e && e.message))) toast('PIN was changed. Log out and sign in again.'); }
+  A.syncing = false; pill();
+  if (A.queue.length && navigator.onLine) setTimeout(sync, 1500);
+}
+async function ensure(from, to, force) {
+  const k = from + '_' + to;
+  if (A.loaded[k] && !force) return true;
+  try {
+    const rows = await call('apiRecords', from, to);
+    Object.keys(A.rec).forEach(d => { if (d >= from && d <= to) delete A.rec[d]; });
+    rows.forEach(r => { (A.rec[r[0]] = A.rec[r[0]] || {})[r[1]] = [r[2], r[3], r[4], r[5] || '']; });
+    applyQueue();
+    if (today() >= from && today() <= to) saveToday();
+    A.loaded[k] = 1; return true;
+  } catch (e) { return false; }
+}
+async function refreshToday() { if (await ensure(today(), today(), true) && (U.view === 'scan' || U.view === 'today')) soft(); }
+function pill() {
+  const p = $('#pill'), n = A.queue.length, on = navigator.onLine;
+  p.className = !on ? 'off' : n ? 'wait' : '';
+  $('span', p).textContent = !on ? 'Offline · ' + n + ' saved' : n ? n + ' to sync' : 'Synced';
+}
+$('#pill').onclick = () => { sync(); toast(navigator.onLine ? (A.queue.length ? 'Syncing…' : 'Everything is synced.') : 'Offline. Scans are safe on this phone and will sync later.'); };
+addEventListener('online', () => { pill(); sync(); refreshToday(); });
+addEventListener('offline', pill);
+setInterval(sync, 20000);
+setInterval(() => { if (navigator.onLine && !document.hidden) refreshToday(); }, 90000);
+
+/* ───────── helpers ───────── */
+const stuById = id => A.boot.students.find(s => s.id === id);
+const roster = (sec, d) => A.boot.students.filter(s => (sec === 'ALL' || s.section === sec) && coreActive(s, d))
+  .sort((a, b) => coreName(a).localeCompare(coreName(b)));
+const secOpts = (sel, all) => (all ? '<option value="ALL">All sections</option>' : '') +
+  A.boot.sections.map(s => `<option ${s.name === sel ? 'selected' : ''}>${esc(s.name)}</option>`).join('');
+const secInfo = n => A.boot.sections.find(s => s.name === n) || { name: n, grade: '', track: '', strand: '', course: '', adviser: '' };
+function dayCount(sec, d) {
+  const m = A.rec[d] || {}, c = { P: 0, L: 0, E: 0, A: 0, n: 0, out: 0, cut: 0 };
+  roster(sec, d).forEach(s => { const r = m[s.id]; c[r ? r[0] : 'A']++; c.n++; const y = dayOf(r, d, s.section); if (y.outside && !y.home) c.out++; if (y.cut) c.cut++; });
+  return c;
+}
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3200); }
+function sheet(html) { $('#sheet').innerHTML = html; $('#shade').hidden = false; }
+function closeSheet() { $('#shade').hidden = true; }
+$('#shade').onclick = e => { if (e.target.id === 'shade') closeSheet(); };
+
+function go(v) {
+  if (U.view === 'scan' && v !== 'scan') stopCam();
+  U.view = v;
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  ({ scan: vScan, today: vToday, reports: vReports, watch: vWatch, care: vCare, more: vMore })[v]();
+  scrollTo(0, 0);
+}
+function soft() { if (U.view === 'scan') scanCounters(); else if (U.view === 'today') vToday(); }
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.v));
+
+/* ───────── SCAN ───────── */
+let cam = null, detector = null, scanOn = false, lastCode = '', lastAt = 0, actx = null;
+function vScan() {
+  $('#view').innerHTML = `
+    <div class="finder"><video id="vid" playsinline muted></video><div class="corners"></div>
+      <div class="start" id="start"><div><button class="btn gold" id="startBtn">Start scanner</button><p class="note" style="color:#cfe3dc;margin-top:12px">Point the camera at a learner's QR ID</p></div></div></div>
+    <div id="res"><div class="ic">·</div><div><b>Ready</b><span>${esc(DOWS[new Date().getDay()])}, ${esc(niceDate(today()))} · late after ${esc(t12(schedFor(today(), U.scanSec).late))} · dismissal ${esc(t12(schedFor(today(), U.scanSec).dismiss))}${schedEntry(today(), U.scanSec) ? ' · ' + esc(schedEntry(today(), U.scanSec).note || 'special schedule') : ''}</span></div></div>
+    <div class="seg" id="modeSeg"><button data-m="arrival">Arrival only</button><button data-m="gate">Gate: in &amp; out</button></div>
+    <div class="tiles" id="cnt"></div>
+    <div class="card"><div class="row"><select id="scanSec" aria-label="Section">${secOpts(U.scanSec, true)}</select></div>
+      <label class="btn ghost" style="display:block;margin-top:8px">Scan with a photo<input type="file" id="shot" accept="image/*" capture="environment" hidden></label>
+      <div style="margin-top:8px"><input type="search" id="find" placeholder="No ID? Type a name to mark present"></div><div id="found"></div></div>`;
+  const paintMode = () => document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === U.mode));
+  paintMode();
+  document.querySelectorAll('#modeSeg button').forEach(b => b.onclick = () => { U.mode = b.dataset.m; LS.set('mode', U.mode); paintMode(); scanCounters();
+    toast(U.mode === 'gate' ? 'Gate mode: each scan after arrival switches the learner between OUT and IN.' : 'Arrival mode: a learner is recorded once; repeat scans are ignored.'); });
+  scanCounters();
+  $('#scanSec').onchange = e => { U.scanSec = e.target.value; scanCounters(); };
+  $('#startBtn').onclick = startCam;
+  $('#shot').onchange = e => { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); } catch (x) {} scanPhoto(e.target.files[0]); e.target.value = ''; };
+  $('#find').onkeydown = e => {                      // a handheld USB/Bluetooth scanner types the code and presses Enter
+    if (e.key !== 'Enter') return;
+    const id = e.target.value.trim().replace(/^NARITO:/i, '');
+    if (stuById(id)) { checkIn(id, 'scan'); e.target.value = ''; $('#found').innerHTML = ''; }
+  };
+  $('#find').oninput = e => {
+    const q = e.target.value.trim().toLowerCase();
+    const hits = q.length < 2 ? [] : roster(U.scanSec, today()).filter(s => coreName(s).toLowerCase().indexOf(q) > -1).slice(0, 6);
+    $('#found').innerHTML = hits.length ? '<div class="list" style="margin:8px 0 0">' + hits.map(s =>
+      `<button class="li" data-id="${esc(s.id)}"><span class="nm">${esc(coreName(s))}<small>${esc(s.section)}</small></span><span class="badge b-p">Mark present</span></button>`).join('') + '</div>' : '';
+    $('#found').querySelectorAll('button').forEach(b => b.onclick = () => { checkIn(b.dataset.id, 'manual'); $('#find').value = ''; $('#found').innerHTML = ''; });
+  };
+}
+function scanCounters() {
+  const c = dayCount(U.scanSec, today()), el = $('#cnt'); if (!el) return;
+  el.innerHTML = `<div class="tile p"><b>${c.P + c.L}</b><span>Present</span></div>${U.mode === 'gate' ? `<div class="tile o"><b>${c.out}</b><span>Outside now</span></div>` : `<div class="tile l"><b>${c.L}</b><span>Late</span></div>`}<div class="tile a"><b>${c.A + c.E}</b><span>Not yet in</span></div>`;
+}
+async function startCam() {
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+  if ('BarcodeDetector' in window && !detector) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { detector = null; } }
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw { name: 'NoApi' };
+    try { cam = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); }
+    catch (e1) { if (e1 && (e1.name === 'NotAllowedError' || e1.name === 'SecurityError')) throw e1; cam = await navigator.mediaDevices.getUserMedia({ video: true }); }
+    const v = $('#vid'); v.srcObject = cam; v.setAttribute('playsinline', ''); v.muted = true;
+    try { await v.play(); } catch (e2) {}
+    $('#start').hidden = true; scanOn = true; tick();
+  } catch (e) {
+    const n = (e && e.name) || 'Error';
+    const why = {
+      NotAllowedError: 'The camera is blocked for this page. Tap the icon at the left of the address bar → Permissions (Site settings) → Camera → Allow, then reload. Until then use “Scan with a photo” below.',
+      SecurityError: 'The browser blocked the camera for this page. Use “Scan with a photo” below.',
+      NotFoundError: 'No camera was found on this device. Use “Scan with a photo” below, or type the name.',
+      NotReadableError: 'Another app is using the camera. Close it (Camera, Meet, Messenger…) and try again.',
+      NoApi: 'This browser cannot open the camera here. Open the link in Chrome itself, or use “Scan with a photo” below.'
+    }[n] || ('Use “Scan with a photo” below. (' + n + (e && e.message ? ': ' + e.message : '') + ')');
+    showRes('bad', '!', 'Camera not available', why);
+  }
+}
+async function scanPhoto(file) {
+  if (!file) return;
+  try {
+    let text = '';
+    const bmp = await createImageBitmap(file);
+    if (detector) { try { const c = await detector.detect(bmp); if (c.length) text = c[0].rawValue; } catch (e) {} }
+    if (!text && window.jsQR) {
+      for (const size of [1000, 600, 1600]) {
+        const k = Math.min(1, size / Math.max(bmp.width, bmp.height)); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+        const x = cv.getContext('2d', { willReadFrequently: true }); x.drawImage(bmp, 0, 0, cv.width, cv.height);
+        const q = jsQR(x.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height);
+        if (q && q.data) { text = q.data; break; }
+      }
+    }
+    if (text) { lastCode = ''; onCode(text); } else showRes('bad', '?', 'No QR found in the photo', 'Hold the card flat, fill the frame, and try again.');
+  } catch (e) { showRes('bad', '!', 'Could not read the photo', 'Try again, or type the name below.'); }
+}
+function stopCam() { scanOn = false; if (cam) { cam.getTracks().forEach(t => t.stop()); cam = null; } }
+const cv = document.createElement('canvas');
+async function tick() {
+  if (!scanOn) return;
+  const v = $('#vid');
+  try {
+    if (v && v.readyState >= 2) {
+      if (detector) { const c = await detector.detect(v); if (c.length) onCode(c[0].rawValue); }
+      else if (window.jsQR) {
+        const k = Math.min(1, 520 / v.videoWidth); cv.width = v.videoWidth * k; cv.height = v.videoHeight * k;
+        const x = cv.getContext('2d', { willReadFrequently: true }); x.drawImage(v, 0, 0, cv.width, cv.height);
+        const q = jsQR(x.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height);
+        if (q && q.data) onCode(q.data);
+      }
+    }
+  } catch (e) {}
+  setTimeout(tick, 160);
+}
+function onCode(text) {
+  const now = Date.now();
+  if (text === lastCode && now - lastAt < 3500) return;
+  lastCode = text; lastAt = now;
+  checkIn(String(text).trim().replace(/^NARITO:/i, ''), 'scan');
+}
+function checkIn(id, src) {
+  const s = stuById(id), d = today();
+  if (!s) { beep(200, .3); return showRes('bad', '?', 'QR not recognised', 'This code is not in the learner list.'); }
+  if (!coreActive(s, d)) { beep(200, .3); return showRes('bad', '!', coreName(s), 'No longer enrolled in ' + s.section); }
+  const had = (A.rec[d] || {})[id], t = nowHM(), name = coreName(s);
+  if (!had || had[0] === 'E') {                       // first scan of the day = arrival
+    const st = t > schedFor(d, s.section).late ? 'L' : 'P';
+    record({ d: d, id: id, st: st, t: t, src: had ? 'manual' : src, mv: 'I' });
+    lastMove[id] = Date.now();
+    beep(st === 'P' ? 880 : 620, .14); if (navigator.vibrate) navigator.vibrate(st === 'P' ? 60 : [60, 60, 60]);
+    const early = st === 'P' && coreMin(t) <= coreMin(schedFor(d, s.section).late) - earlyMin();
+    if (early) showRes('early', '★', name, 'Early bird! · ' + t12(t) + ' · ' + s.section);
+    else showRes(st === 'P' ? 'ok' : 'late', st === 'P' ? '✓' : 'L', name, (st === 'P' ? 'Present' : 'Late') + ' · ' + t12(t) + ' · ' + s.section);
+  } else if (U.mode !== 'gate') {
+    beep(440, .12); showRes('dup', '✓', name, 'Already recorded at ' + t12(had[1]) + ' · ' + s.section);
+  } else if (Date.now() - (lastMove[id] || 0) < 60000) {
+    beep(440, .12); showRes('dup', '✓', name, 'Just scanned — wait a minute before scanning this learner again.');
+  } else {
+    const k = isOut(had) ? 'I' : 'O', m = moves(had);
+    if (m.length && m[m.length - 1].t === t) { beep(440, .12); return showRes('dup', '✓', name, 'Already scanned this minute.'); }
+    record({ d: d, id: id, mv: k, t: t, src: 'scan' });
+    lastMove[id] = Date.now();
+    const y = dayOf((A.rec[d] || {})[id], d, s.section), after = t >= schedFor(d, s.section).dismiss;
+    beep(k === 'O' ? 520 : 880, .14); if (navigator.vibrate) navigator.vibrate(k === 'O' ? [40, 40, 40] : 60);
+    showRes(k === 'O' ? 'out' : 'ok', k === 'O' ? '→' : '←', name, (k === 'O' ? (after ? 'Went home' : 'Went OUT during class hours') : 'Back IN') + ' · ' + t12(t) + (y.outs ? ' · out ' + y.outs + '× today' : '') + ' · ' + s.section);
+  }
+  scanCounters();
+}
+const lastMove = {};
+function showRes(cls, ic, title, sub) {
+  const r = $('#res'); if (!r) return;
+  r.className = cls; r.innerHTML = `<div class="ic">${esc(ic)}</div><div><b>${esc(title)}</b><span>${esc(sub)}</span></div>`;
+  void r.offsetWidth; r.classList.add('pop');
+}
+function beep(f, dur) {
+  try { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; g.gain.value = .15; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + dur); } catch (e) {}
+}
+
+/* ───────── DAILY ───────── */
+async function vToday() {
+  const d = U.date, c = dayCount(U.sec, d), m = A.rec[d] || {}, nc = A.boot.noClass[d];
+  const rows = roster(U.sec, d).map(s => ({ s: s, r: m[s.id], st: m[s.id] ? m[s.id][0] : 'A', y: dayOf(m[s.id], d, s.section) }));
+  const groups = { A: rows.filter(x => x.st === 'A' || x.st === 'E'), L: rows.filter(x => x.st === 'L'), P: rows.filter(x => x.st === 'P' || x.st === 'L'),
+    O: rows.filter(x => x.y.outs > 0 || x.y.cut || x.y.outside) };
+  const B = { P: ['b-p', 'Present'], L: ['b-l', 'Late'], A: ['b-a', 'Absent'], E: ['b-e', 'Excused'] };
+  const sub = x => U.tab === 'O' || x.y.outs || x.y.outside ? ' · ' + esc(trail(x.r)) + (x.y.outs ? ' · out ' + x.y.outs + '×' : '') + (x.y.minOut ? ' · ' + mins(x.y.minOut) + ' outside' : '') : (x.r && x.r[1] ? ' · ' + t12(x.r[1]) : '');
+  const badge = x => x.y.cut ? '<span class="badge b-c">Cutting</span>' : x.y.home ? '<span class="badge b-p">Went home</span>' : x.y.outside ? '<span class="badge b-o">Outside</span>' : `<span class="badge ${B[x.st][0]}">${B[x.st][1]}</span>`;
+  const sn = schedNote(d, U.sec), snSec = U.sec === 'ALL' ? sectionsWithSpecial(d) : [];
+  $('#view').innerHTML = `<h2>Daily attendance</h2>
+    <div class="row" style="margin-bottom:12px"><select id="dSec" aria-label="Section">${secOpts(U.sec, true)}</select><input type="date" id="dDate" value="${d}" max="${today()}" aria-label="Date"></div>
+    ${nc ? `<div class="warn"><b>No-class day:</b> ${esc(nc)}. This date is not counted in reports.</div>` : ''}
+    ${!nc && c.P + c.L === 0 ? `<div class="warn">No scans for this day yet. A day is counted as a class day once at least one learner of the section is recorded present.</div>` : ''}
+    <div class="tiles"><div class="tile p"><b>${c.P + c.L}</b><span>Present</span></div><div class="tile l"><b>${c.L}</b><span>Late</span></div><div class="tile a"><b>${c.A + c.E}</b><span>Absent</span></div></div>
+    ${sn ? `<div class="warn"><b>Special schedule:</b> ${esc(sn)}</div>` : ''}${snSec.length ? `<div class="warn"><b>Special schedule</b> for ${esc(snSec.join(', '))}. Choose the section to see it.</div>` : ''}
+    ${c.cut || c.out ? `<p class="note" style="margin:-4px 0 12px"><b style="color:#8a1f66">${c.cut}</b> cutting classes · <b style="color:#274c8f">${c.out}</b> outside now</p>` : ''}
+    <div class="seg">${[['A', 'Absent'], ['L', 'Late'], ['P', 'Present'], ['O', 'In/Out']].map(x => `<button data-t="${x[0]}" class="${U.tab === x[0] ? 'on' : ''}">${x[1]} (${groups[x[0]].length})</button>`).join('')}</div>
+    <div class="list">${groups[U.tab].map(x => `<button class="li" data-id="${esc(x.s.id)}"><span class="nm">${esc(coreName(x.s))}<small>${esc(x.s.section)}${sub(x)}${x.r && x.r[2] === 'manual' ? ' · manual' : ''}</small></span>${badge(x)}</button>`).join('') || '<div class="li note">Nobody in this list.</div>'}</div>
+    <p class="note">Tap a name to correct a status.</p>
+    <div class="row"><button class="btn" id="dPrint" style="flex-basis:100%">Daily report</button><button class="btn ghost" id="dSch">Day schedule</button><button class="btn ghost" id="dNC">${nc ? 'Remove no-class day' : 'No-class day'}</button></div>`;
+  $('#dSec').onchange = e => { U.sec = e.target.value; vToday(); };
+  $('#dDate').onchange = async e => { U.date = e.target.value || today(); await ensure(U.date, U.date); vToday(); };
+  document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { U.tab = b.dataset.t; vToday(); });
+  document.querySelectorAll('#view .list button').forEach(b => b.onclick = () => editStatus(b.dataset.id, d));
+  $('#dPrint').onclick = () => printDaily(U.sec, d);
+  $('#dNC').onclick = () => noClass(d, nc);
+  $('#dSch').onclick = () => daySchedule(d);
+}
+function editStatus(id, d) {
+  const s = stuById(id), r = (A.rec[d] || {})[id], inSchool = r && r[0] !== 'E';
+  sheet(`<h4>${esc(coreName(s))}</h4><div class="note">${esc(s.section)} · ${esc(niceDate(d))}${r ? ' · now: ' + ({ P: 'Present', L: 'Late', E: 'Excused' })[r[0]] : ' · now: Absent'}</div>
+    ${inSchool && moves(r).length ? `<div class="note" style="margin-top:6px"><b>In/out:</b> ${esc(trail(r))}${dayOf(r, d, s.section).outs ? ' · went out ' + dayOf(r, d, s.section).outs + '× · ' + mins(dayOf(r, d, s.section).minOut) + ' outside during class hours' : ''}${dayOf(r, d, s.section).cut ? ' · <b style="color:#8a1f66">cutting classes</b>' : ''}</div>` : ''}
+    <div class="opt"><button class="btn" data-s="P">Present</button><button class="btn gold" data-s="L">Late / Tardy</button>
+    <button class="btn ghost" data-s="E">Excused absence</button><button class="btn ghost" data-s="X" style="color:var(--coral)">Absent</button>
+    ${inSchool && d === today() ? `<button class="btn ghost" data-s="${isOut(r) ? 'MI' : 'MO'}" style="color:#274c8f">${isOut(r) ? 'Record: came back IN now' : 'Record: went OUT now'}</button>` : ''}</div>`);
+  $('#sheet').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const st = b.dataset.s;
+    if (st === 'MI' || st === 'MO') record({ d: d, id: id, mv: st.charAt(1), t: nowHM(), src: 'manual' });
+    else record({ d: d, id: id, st: st, t: st === 'P' || st === 'L' ? (r && r[1]) || (d === today() ? nowHM() : '') : '', src: 'manual' });
+    closeSheet(); vToday();
+  });
+}
+function daySchedule(d) {
+  if (!navigator.onLine) return toast('Needs internet.');
+  const sec0 = U.sec, reg = coreSched(A.boot.settings, { sched: {}, secTimes: secTimes() }, d, sec0), cur = schedEntry(d, sec0);
+  const presets = A.boot.presets || [];
+  sheet(`<h4>Special schedule</h4>
+    <div class="note">Regular schedule${sec0 === 'ALL' ? '' : ' of ' + esc(sec0)}: <b>${esc(t12(reg.late))} – ${esc(t12(reg.dismiss))}</b>. To change the regular times, go to IDs &amp; More → School schedule.</div>
+    <div class="lbl" style="margin-top:14px">1 · Pick a preset or type the times</div>
+    <div class="chips">${presets.map((p, i) => `<button class="pchip" data-p="${i}">${esc(p.name)}</button>`).join('')}</div>
+    <div class="grid2"><label>Late after<input type="time" id="sL" value="${esc(cur ? cur.late || reg.late : reg.late)}"></label><label>Dismissal<input type="time" id="sD" value="${esc(cur ? cur.dismiss || reg.dismiss : reg.dismiss)}"></label></div>
+    <input type="text" id="sN" style="margin-top:8px" placeholder="Name / reason, e.g. Half day — INSET" maxlength="60" value="${esc(cur ? cur.note : '')}">
+    <label class="pick" style="border:0"><input type="checkbox" id="sP">Save these times as a preset (uses the name above)</label>
+    <div class="lbl" style="margin-top:6px">2 · Which section and which days</div>
+    <select id="sSec" style="margin-top:4px">${'<option value="">All sections</option>' + A.boot.sections.map(s => `<option ${s.name === sec0 ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
+    <div class="grid2" style="margin-top:8px"><label>From<input type="date" id="sF" value="${d}"></label><label>To<input type="date" id="sT" value="${d}"></label></div>
+    <div class="note" style="margin-top:4px">Saturdays and Sundays in the range are skipped.</div>
+    <div class="opt"><button class="btn" id="sS">Save special schedule</button>
+    <button class="btn ghost" id="sR" style="color:var(--coral)">Back to regular schedule for these days</button></div>`);
+  document.querySelectorAll('#sheet [data-p]').forEach(b => b.onclick = () => {
+    const p = presets[+b.dataset.p];
+    $('#sL').value = p.late || reg.late; $('#sD').value = p.dismiss || reg.dismiss; $('#sN').value = p.name;
+    document.querySelectorAll('#sheet .pchip').forEach(x => x.classList.toggle('on', x === b));
+  });
+  const days = () => {
+    let f = $('#sF').value, t = $('#sT').value || f; if (!f) return [];
+    if (t < f) { const x = f; f = t; t = x; }
+    const out = []; for (let x = f; x <= t && out.length < 200; x = coreAdd(x, 1)) { const w = coreDow(x); if (w >= 1 && w <= 5) out.push(x); }
+    return out;
+  };
+  const save = async clear => {
+    const list = days(); if (!list.length) return toast('Choose at least one weekday.');
+    const L = $('#sL').value, D = $('#sD').value;
+    if (!clear && L && D && L >= D) return toast('Dismissal must be later than the late-after time.');
+    const o = { dates: list, section: $('#sSec').value, late: clear ? '' : (L === reg.late ? '' : L), dismiss: clear ? '' : (D === reg.dismiss ? '' : D),
+      note: $('#sN').value.trim() || 'Special schedule', preset: $('#sP').checked };
+    if (!clear && !o.late && !o.dismiss) return toast('These are the regular times. Change a time first.');
+    if (o.preset) { o.late = o.late || L; o.dismiss = o.dismiss || D; }
+    try { const r = await call('apiDaySchedule', o); A.boot.sched = r.sched; A.boot.presets = r.presets; LS.set('boot', A.boot); closeSheet(); go(U.view);
+      toast((clear ? 'Regular schedule restored for ' : 'Special schedule saved for ') + list.length + ' day' + (list.length > 1 ? 's' : '') + '.'); }
+    catch (e) { toast('Could not save: ' + (e && e.message || e)); }
+  };
+  $('#sS').onclick = () => save(false);
+  $('#sR').onclick = () => save(true);
+}
+function schoolSchedule() {
+  if (!navigator.onLine) return toast('Needs internet.');
+  const S = A.boot.settings, P = A.boot.presets || [];
+  sheet(`<h4>School schedule</h4><div class="note">The regular times used every school day. A section with blank times follows the school schedule.</div>
+    <div class="grid2" style="margin-top:12px"><label>Late after<input type="time" id="rL" value="${esc(S.late)}"></label><label>Dismissal<input type="time" id="rD" value="${esc(S.dismiss)}"></label>
+      <label>Lunch break starts<input type="time" id="rLs" value="${esc(S.lunchS)}"></label><label>Lunch break ends<input type="time" id="rLe" value="${esc(S.lunchE)}"></label></div>
+    <label class="lbl" style="margin-top:8px">Cutting classes after this many minutes outside<input type="number" id="rC" min="0" max="240" value="${esc(S.cutMin)}"></label>
+    <div class="lbl" style="margin-top:14px">Sections with their own times</div>
+    <div class="secrow" style="border:0;color:var(--muted);font-size:11px"><span>Section</span><span>Late after</span><span>Dismissal</span></div>
+    ${A.boot.sections.map((s, i) => `<div class="secrow"><span>${esc(s.name)}</span><input type="time" data-sl="${i}" value="${esc(s.late)}"><input type="time" data-sd="${i}" value="${esc(s.dismiss)}"></div>`).join('')}
+    <div class="lbl" style="margin-top:14px">Presets for special days</div>
+    ${P.map((p, i) => `<div class="pick"><span style="flex:1"><b>${esc(p.name)}</b><br><span class="note">${p.late ? 'late after ' + esc(t12(p.late)) : 'regular start'} · ${p.dismiss ? 'dismissal ' + esc(t12(p.dismiss)) : 'regular dismissal'}</span></span><button class="btn sm ghost" data-rp="${i}" style="color:var(--coral)">Remove</button></div>`).join('') || '<div class="note">No presets yet.</div>'}
+    <div class="opt"><button class="btn" id="rS">Save school schedule</button></div>`);
+  document.querySelectorAll('#sheet [data-rp]').forEach(b => b.onclick = async () => {
+    try { A.boot.presets = await call('apiPreset', P[+b.dataset.rp].name, '', ''); LS.set('boot', A.boot); schoolSchedule(); toast('Preset removed.'); } catch (e) { toast('Could not remove. Try again.'); }
+  });
+  $('#rS').onclick = async () => {
+    const o = { late: $('#rL').value, dismiss: $('#rD').value, lunchS: $('#rLs').value, lunchE: $('#rLe').value, cutMin: $('#rC').value, sections: {} };
+    A.boot.sections.forEach((s, i) => { o.sections[s.name] = { late: $(`[data-sl="${i}"]`).value, dismiss: $(`[data-sd="${i}"]`).value }; });
+    const b = $('#rS'); b.disabled = true; b.textContent = 'Saving…';
+    try { A.boot = await call('apiSaveSchedule', o); A.secT = null; LS.set('boot', A.boot); closeSheet(); go(U.view); toast('School schedule saved.'); }
+    catch (e) { b.disabled = false; b.textContent = 'Save school schedule'; toast('Could not save: ' + (e && e.message || e)); }
+  };
+}
+function noClass(d, has) {
+  if (!navigator.onLine) return toast('Needs internet.');
+  const save = async reason => { try { A.boot.noClass = await call('apiNoClass', d, reason); LS.set('boot', A.boot); closeSheet(); go(U.view); } catch (e) { toast('Could not save. Try again.'); } };
+  if (has) return save('');
+  sheet(`<h4>No-class day</h4><div class="note">${esc(niceDate(d))} will be left out of all computations (holiday, suspension, school activity).</div>
+    <div class="opt"><input type="text" id="ncr" placeholder="Reason, e.g. Typhoon suspension" maxlength="80"><button class="btn" id="ncs">Save</button></div>`);
+  $('#ncs').onclick = () => save($('#ncr').value.trim() || 'No classes');
+}
+
+/* ───────── periods & computation ───────── */
+function period() {
+  const S = A.boot.settings;
+  if (U.period === 'month') return { from: U.ym + '-01', to: coreMonthEnd(U.ym), label: niceMonth(U.ym) };
+  if (U.period === 'sy') return { from: S.t1s, to: S.t3e, label: 'School Year ' + S.sy };
+  const n = U.period.slice(1);
+  return { from: S['t' + n + 's'], to: S['t' + n + 'e'], label: 'Term ' + n + ', SY ' + S.sy };
+}
+function dataFor(from, to) {
+  const recs = [];
+  Object.keys(A.rec).forEach(d => { if (d >= from && d <= to) Object.keys(A.rec[d]).forEach(id => recs.push([d, id, A.rec[d][id][0], A.rec[d][id][1], A.rec[d][id][2], A.rec[d][id][3]])); });
+  return { students: A.boot.students, records: recs, noClass: A.boot.noClass, sched: A.boot.sched || {}, now: { d: today(), t: nowHM() } };
+}
+function compute(sec, from, to) {
+  const data = dataFor(from, to), names = sec === 'ALL' ? A.boot.sections.map(s => s.name) : [sec];
+  const parts = names.map(n => coreCompute(data, n, from, to, A.boot.settings));
+  const o = { parts: parts, students: [].concat.apply([], parts.map(p => p.students)), days: 0, ada: 0, reg: 0, abs: 0, tardy: 0, outs: 0, cuts: 0 };
+  parts.forEach(p => { o.days = Math.max(o.days, p.days.length); o.ada += p.totals.T.ada; o.reg += p.totals.T.reg; });
+  o.students.forEach(s => { o.abs += s.absent; o.tardy += s.tardy; o.outs += s.outs; o.cuts += s.cuts; });
+  o.pct = o.reg ? o.ada / o.reg * 100 : null;
+  return o;
+}
+function monthsIn(p) {
+  const out = []; let ym = p.from.slice(0, 7); const end = (p.to < today() ? p.to : today()).slice(0, 7);
+  while (ym <= end && out.length < 14) { out.push(ym); const y = +ym.slice(0, 4), m = +ym.slice(5); ym = m === 12 ? (y + 1) + '-01' : y + '-' + pad(m + 1); }
+  return out;
+}
+const periodBar = () => `<div class="row" style="margin-bottom:8px"><select id="pSec" aria-label="Section">${secOpts(U.sec, true)}</select>
+  <select id="pPer" aria-label="Period">${[['month', 'Month'], ['t1', 'Term 1'], ['t2', 'Term 2'], ['t3', 'Term 3'], ['sy', 'Whole school year']].map(x => `<option value="${x[0]}" ${U.period === x[0] ? 'selected' : ''}>${x[1]}</option>`).join('')}</select></div>
+  ${U.period === 'month' ? `<input type="month" id="pYm" value="${U.ym}" aria-label="Month" style="margin-bottom:12px">` : `<p class="note" style="margin:0 0 12px">${esc(niceDate(period().from))} – ${esc(niceDate(period().to))}</p>`}`;
+function bindPeriod(render) {
+  $('#pSec').onchange = e => { U.sec = e.target.value; U.sf2 = null; render(); };
+  $('#pPer').onchange = e => { U.period = e.target.value; U.sf2 = null; render(); };
+  if ($('#pYm')) $('#pYm').onchange = e => { U.ym = e.target.value || today().slice(0, 7); U.sf2 = null; render(); };
+}
+
+/* ───────── REPORTS ───────── */
+async function vReports() {
+  const p = period();
+  $('#view').innerHTML = '<h2>Reports</h2>' + periodBar() + '<p class="note">Loading…</p>';
+  bindPeriod(vReports);
+  const fresh = await ensure(p.from, p.to);
+  if (U.view !== 'reports') return;
+  const r = compute(U.sec, p.from, p.to), multi = U.period !== 'month';
+  const canSf2 = U.period === 'month' && U.sec !== 'ALL';
+  $('#view').innerHTML = `<h2>Reports</h2>${periodBar()}
+    ${fresh ? '' : '<div class="warn">Offline — showing only the attendance stored on this phone. Connect to see the full record.</div>'}
+    <div class="tiles four"><div class="tile"><b>${r.days}</b><span>Class days${U.sec === 'ALL' ? ' (most in a section)' : ''}</span></div>
+      <div class="tile p"><b>${pct(r.pct)}</b><span>Attendance rate</span></div>
+      <div class="tile"><b>${Math.round(r.ada * 10) / 10}</b><span>Average daily attendance</span></div>
+      <div class="tile a"><b>${r.abs}</b><span>Absences · ${r.tardy} tardy · ${r.cuts} cutting</span></div></div>
+    <div class="row"><button class="btn" id="rPrint">${esc(multi ? 'Summary report' : 'Monthly report')}</button>
+      <button class="btn gold" id="rSf2" ${canSf2 ? '' : 'disabled'}>Generate SF2</button></div>
+    ${canSf2 ? '' : '<p class="note" style="margin-top:6px">SF2 is made per section, per month — choose one section and “Month”.</p>'}
+    <div id="sf2box"></div>
+    ${multi ? `<h3>Month by month</h3><div class="card scroll"><table class="t"><tr><th>Month</th><th>Days</th><th>ADA</th><th>Rate</th><th>Absences</th></tr>${monthsIn(p).map(ym => { const m = compute(U.sec, ym + '-01', coreMonthEnd(ym) < p.to ? coreMonthEnd(ym) : p.to); return `<tr><td>${esc(niceMonth(ym))}</td><td>${m.days}</td><td>${Math.round(m.ada * 10) / 10}</td><td>${pct(m.days ? m.pct : null)}</td><td>${m.abs}</td></tr>`; }).join('')}</table></div>` : ''}
+    <h3>Learners (${r.students.length})</h3>
+    <div class="card scroll"><table class="t"><tr><th>Name</th><th>Present</th><th>Absent</th><th>Tardy</th><th>Went out</th><th>Cutting</th><th>Rate</th></tr>
+      ${r.students.map(s => `<tr><td>${esc(s.name)}${U.sec === 'ALL' ? `<br><span class="note">${esc(s.section)}</span>` : ''}</td><td>${s.present}</td><td style="${s.absent ? 'color:var(--coral);font-weight:700' : ''}">${s.absent}</td><td>${s.tardy}</td><td>${s.outs}</td><td style="${s.cuts ? 'color:#8a1f66;font-weight:700' : ''}">${s.cuts}</td><td>${pct(s.rate)}</td></tr>`).join('') || '<tr><td colspan="7">No learners.</td></tr>'}</table></div>`;
+  bindPeriod(vReports);
+  $('#rPrint').onclick = () => printSummary(U.sec, p, r, multi);
+  $('#rSf2').onclick = makeSf2;
+  showSf2();
+}
+async function makeSf2() {
+  if (!navigator.onLine) return toast('SF2 needs internet (it is written into your Google Sheet).');
+  if (A.queue.length) { toast('Syncing scans first…'); await sync(); if (A.queue.length) return toast('Some scans are still waiting to sync. Try again.'); }
+  const b = $('#rSf2'); b.disabled = true; b.textContent = 'Building SF2…';
+  try { U.sf2 = await call('apiSf2', U.sec, U.ym); showSf2(); toast('SF2 is ready.'); }
+  catch (e) { toast('Could not build SF2: ' + (e && e.message || e)); }
+  b.disabled = false; b.textContent = 'Generate SF2';
+}
+function showSf2() {
+  const x = U.sf2, el = $('#sf2box'); if (!el || !x) return;
+  el.innerHTML = `<div class="card" style="margin-top:12px;border-color:#a9d8c5;background:var(--mint)"><b>${esc(x.sheet)}</b><div class="note" style="margin:2px 0 10px">Saved as a tab in your Google Sheet, ready for signature.</div>
+    <div class="row"><a class="btn sm" href="${esc(x.pdf)}" target="_blank" rel="noopener">PDF</a><a class="btn sm ghost" href="${esc(x.xlsx)}" target="_blank" rel="noopener">Excel</a><a class="btn sm ghost" href="${esc(x.url)}" target="_blank" rel="noopener">Open sheet</a></div></div>`;
+}
+
+/* ───────── WATCH — We Advocate Time Consciousness and Honesty ───────── */
+function wPeriod() {
+  const S = A.boot.settings, t = today();
+  if (U.wper === 'day') return { from: U.wday, to: U.wday, label: DOWS[coreDow(U.wday)] + ', ' + niceDate(U.wday) };
+  if (U.wper === 'week') { const mo = coreAdd(t, 1 - (coreDow(t) || 7)), fr = coreAdd(mo, 4);
+    return { from: mo, to: fr, label: 'Week of ' + MONTHS[+mo.slice(5, 7) - 1] + ' ' + +mo.slice(8) + ' – ' + (fr.slice(5, 7) === mo.slice(5, 7) ? '' : MONTHS[+fr.slice(5, 7) - 1] + ' ') + +fr.slice(8) + ', ' + fr.slice(0, 4) }; }
+  if (U.wper === 'month') return { from: U.ym + '-01', to: coreMonthEnd(U.ym), label: niceMonth(U.ym) };
+  if (U.wper === 'sy') return { from: S.t1s, to: S.t3e, label: 'School Year ' + S.sy };
+  const n = U.wper.slice(1);
+  return { from: S['t' + n + 's'], to: S['t' + n + 'e'], label: 'Term ' + n + ', SY ' + S.sy };
+}
+const hmOf = m => m == null ? '—' : t12(pad(Math.floor(m / 60)) + ':' + pad(Math.round(m % 60) % 60));
+const byEarly = (a, b) => b.early - a.early || (b.earlyRate || 0) - (a.earlyRate || 0) || (a.avgArr || 1e9) - (b.avgArr || 1e9) || a.name.localeCompare(b.name);
+function watchData(sec, p) {
+  const r = compute(sec, p.from, p.to), st = r.students.filter(s => s.present > 0 || s.absent > 0);
+  const sum = { present: 0, early: 0, tardy: 0, cuts: 0, arrSum: 0, arrN: 0 };
+  st.forEach(s => { sum.present += s.present; sum.early += s.early; sum.tardy += s.tardy; sum.cuts += s.cuts; sum.arrSum += s.arrSum; sum.arrN += s.arrN; });
+  sum.punct = sum.present ? (sum.present - sum.tardy) / sum.present * 100 : null;
+  sum.earlyRate = sum.present ? sum.early / sum.present * 100 : null;
+  sum.avgArr = sum.arrN ? sum.arrSum / sum.arrN : null;
+  const ranked = st.filter(s => s.early > 0).sort(byEarly);
+  const perSec = {}; ranked.forEach(s => (perSec[s.section] = perSec[s.section] || []).push(s));
+  const standings = r.parts.map(pt => { const o = { section: pt.section, present: 0, tardy: 0, early: 0, arrSum: 0, arrN: 0, exemplars: 0 };
+    pt.students.forEach(s => { o.present += s.present; o.tardy += s.tardy; o.early += s.early; o.arrSum += s.arrSum; o.arrN += s.arrN; if (s.exemplar) o.exemplars++; });
+    o.punct = o.present ? (o.present - o.tardy) / o.present * 100 : null; o.earlyRate = o.present ? o.early / o.present * 100 : null; o.avgArr = o.arrN ? o.arrSum / o.arrN : null; return o; })
+    .filter(o => o.present > 0).sort((a, b) => (b.punct || 0) - (a.punct || 0) || (b.earlyRate || 0) - (a.earlyRate || 0) || (a.avgArr || 1e9) - (b.avgArr || 1e9));
+  const exemplars = st.filter(s => s.exemplar).sort((a, b) => (a.avgArr || 1e9) - (b.avgArr || 1e9));
+  const th = coreThresholds(A.boot.settings);
+  const coach = st.filter(s => s.tardy >= th.mTardy || s.cuts >= th.mCut).sort((a, b) => b.tardy + b.cuts * 2 - a.tardy - a.cuts * 2);
+  return { r: r, sum: sum, ranked: ranked, perSec: perSec, standings: standings, exemplars: exemplars, coach: coach, days: r.days };
+}
+function firstArrivals(sec, d) {
+  const m = A.rec[d] || {};
+  return roster(sec, d).map(s => ({ s: s, r: m[s.id] })).filter(x => x.r && (x.r[0] === 'P' || x.r[0] === 'L') && /^\d\d:\d\d$/.test(x.r[1] || ''))
+    .map(x => ({ s: x.s, t: x.r[1], st: x.r[0], early: x.r[0] === 'P' && coreMin(x.r[1]) <= coreMin(schedFor(d, x.s.section).late) - earlyMin() }))
+    .sort((a, b) => a.t.localeCompare(b.t) || coreName(a.s).localeCompare(coreName(b.s)));
+}
+async function vWatch() {
+  U.wper = U.wper || 'month'; U.wday = U.wday || today();
+  const p = wPeriod(), head = `<div class="wh"><svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M10 2.5h4M12 2.5V6"/></svg><b>WATCH</b>
+    <span><span class="ac">W</span>e <span class="ac">A</span>dvocate <span class="ac">T</span>ime <span class="ac">C</span>onsciousness and <span class="ac">H</span>onesty</span></div>`;
+  const bar = `<div class="row" style="margin-bottom:8px"><select id="wSec" aria-label="Section">${secOpts(U.sec, true)}</select>
+    <select id="wPer" aria-label="Period">${[['day', 'Day'], ['week', 'This week'], ['month', 'Month'], ['t1', 'Term 1'], ['t2', 'Term 2'], ['t3', 'Term 3'], ['sy', 'Whole school year']].map(x => `<option value="${x[0]}" ${U.wper === x[0] ? 'selected' : ''}>${x[1]}</option>`).join('')}</select></div>
+    ${U.wper === 'month' ? `<input type="month" id="wYm" value="${U.ym}" style="margin-bottom:12px">` : U.wper === 'day' ? `<input type="date" id="wDay" value="${U.wday}" max="${today()}" style="margin-bottom:12px">` : `<p class="note" style="margin:0 0 12px">${esc(p.label)} · ${esc(niceDate(p.from))} – ${esc(niceDate(p.to))}</p>`}`;
+  const bind = () => {
+    $('#wSec').onchange = e => { U.sec = e.target.value; vWatch(); };
+    $('#wPer').onchange = e => { U.wper = e.target.value; vWatch(); };
+    if ($('#wYm')) $('#wYm').onchange = e => { U.ym = e.target.value || today().slice(0, 7); vWatch(); };
+    if ($('#wDay')) $('#wDay').onchange = e => { U.wday = e.target.value || today(); vWatch(); };
+  };
+  $('#view').innerHTML = head + bar + '<p class="note">Loading…</p>'; bind();
+  const fresh = await ensure(p.from, p.to);
+  if (U.view !== 'watch') return;
+  const W = watchData(U.sec, p), S = W.sum, rule = `Early bird = arrived ${earlyMin()} minutes or more before the late-after time (e.g. by ${esc(t12(pad(Math.floor((coreMin(A.boot.settings.late) - earlyMin()) / 60)) + ':' + pad((coreMin(A.boot.settings.late) - earlyMin()) % 60)))} when late-after is ${esc(t12(A.boot.settings.late))}).`;
+  const rk = (i) => `<span class="rk ${i < 3 ? 'r' + (i + 1) : ''}">${i + 1}</span>`;
+  const item = (s, i) => `<div class="li">${rk(i)}<span class="nm">${esc(s.name)}<small>${esc(s.section)} · avg arrival ${esc(hmOf(s.avgArr))} · ${s.tardy} tardy</small></span><span class="val">${s.early}<small>early days</small></span></div>`;
+  let body = '';
+  if (U.wper === 'day') {
+    const fa = firstArrivals(U.sec, U.wday);
+    body = `<h3>First to arrive (${fa.length})</h3><div class="list">${fa.slice(0, 30).map((x, i) => `<div class="li">${rk(i)}<span class="nm">${esc(coreName(x.s))}<small>${esc(x.s.section)}</small></span><span class="badge ${x.early ? 'b-l' : x.st === 'L' ? 'b-a' : 'b-p'}">${esc(t12(x.t))}${x.early ? ' ★' : x.st === 'L' ? ' late' : ''}</span></div>`).join('') || '<div class="li note">No arrivals recorded for this day.</div>'}</div>`;
+  } else {
+    const secs = U.sec === 'ALL' ? Object.keys(W.perSec).sort() : [U.sec];
+    body = `${U.sec === 'ALL' ? `<h3>Section standings</h3><div class="card scroll"><table class="t"><tr><th>#</th><th>Section</th><th>On time</th><th>Early</th><th>Avg in</th></tr>
+        ${W.standings.map((o, i) => `<tr><td>${i + 1}</td><td style="text-align:left">${esc(o.section)}</td><td>${pct(o.punct)}</td><td>${pct(o.earlyRate)}</td><td>${esc(hmOf(o.avgArr))}</td></tr>`).join('') || '<tr><td colspan="5">No arrivals yet.</td></tr>'}</table></div>
+      <h3>School-wide early birds — Top 10</h3><div class="list">${W.ranked.slice(0, 10).map(item).join('') || '<div class="li note">No early birds yet for this period.</div>'}</div>` : ''}
+      ${secs.map(n => `<h3>Early birds — ${esc(n)}</h3><div class="list">${(W.perSec[n] || []).slice(0, U.sec === 'ALL' ? 3 : 10).map(item).join('') || '<div class="li note">No early birds yet.</div>'}</div>`).join('')}
+      <h3>WATCH exemplars — perfect time record (${W.exemplars.length})</h3>
+      <div class="list">${W.exemplars.slice(0, 40).map(s => `<div class="li"><span class="rk r1">★</span><span class="nm">${esc(s.name)}<small>${esc(s.section)} · present all ${s.present} days · never late · never cut classes</small></span></div>`).join('') || '<div class="li note">None yet for this period.</div>'}</div>
+      ${W.coach.length ? `<h3>Needs reminders on time (${W.coach.length})</h3><div class="list">${W.coach.slice(0, 15).map(s => `<div class="li"><span class="nm">${esc(s.name)}<small>${esc(s.section)}</small></span><span class="badge b-a">${s.tardy} tardy${s.cuts ? ' · ' + s.cuts + ' cut' : ''}</span></div>`).join('')}</div>` : ''}`;
+  }
+  $('#view').innerHTML = head + bar + `
+    ${fresh ? '' : '<div class="warn">Offline — based only on attendance stored on this phone.</div>'}
+    <div class="tiles four"><div class="tile l"><b>${S.early}</b><span>Early-bird arrivals</span></div><div class="tile p"><b>${pct(S.punct)}</b><span>Arrivals on time</span></div>
+      <div class="tile"><b style="font-size:21px">${esc(hmOf(S.avgArr))}</b><span>Average arrival</span></div><div class="tile"><b>${W.exemplars.length}</b><span>${U.wper === 'day' ? 'On time, no cutting' : 'Perfect time record'}</span></div></div>
+    <div class="row"><button class="btn" id="wPrint">WATCH report</button><button class="btn gold" id="wCert" ${U.wper === 'day' ? 'disabled' : ''}>Certificates</button></div>
+    <p class="note" style="margin:8px 0 0">${rule}</p>` + body;
+  bind();
+  $('#wPrint').onclick = () => printWatch(U.sec, p, W);
+  $('#wCert').onclick = () => pickCerts(U.sec, p, W);
+}
+function watchSigns(sec) {
+  const S = A.boot.settings, adv = sec === 'ALL' ? '' : secInfo(sec).adviser;
+  const col = (cap, name, role) => `<div><div class="cap">${cap}</div><b>${esc(name)}</b>${role}</div>`;
+  return `<div class="sign">${sec === 'ALL' ? col('Prepared by:', S.watch, 'WATCH Coordinator') : col('Prepared by:', adv, 'Class Adviser') + col('Checked by:', S.watch, 'WATCH Coordinator')}${col('Noted by:', S.principal, 'School Head')}</div>
+    <div class="foot">Generated through NARITO on ${esc(niceDate(today()))}, ${esc(t12(nowHM()))}. NARITO was developed by Joy P. Bacala, Teacher I, Samal Senior High School.</div>`;
+}
+function printWatch(sec, p, W) {
+  const S = W.sum, all = sec === 'ALL';
+  const rows = (list, n) => list.slice(0, n).map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td>${all ? `<td>${esc(s.section)}</td>` : ''}<td>${s.early}</td><td>${s.onTime}</td><td>${s.tardy}</td><td>${esc(hmOf(s.avgArr))}</td></tr>`).join('');
+  const thead = `<tr><th style="width:30px">Rank</th><th class="n">Name</th>${all ? '<th>Section</th>' : ''}<th>Early days</th><th>On-time days</th><th>Tardy</th><th>Average arrival</th></tr>`;
+  let html = docHead('WATCH Report', sec, p.label) + `<div class="sub" style="text-align:center;margin:-4px 0 10px"><b>W</b>e <b>A</b>dvocate <b>T</b>ime <b>C</b>onsciousness and <b>H</b>onesty — Early Birds and Punctuality</div>`;
+  if (U.wper === 'day') {
+    const fa = firstArrivals(sec, p.from);
+    html += `<h2>Order of arrival (${fa.length})</h2><table><tr><th style="width:30px">No.</th><th class="n">Name</th>${all ? '<th>Section</th>' : ''}<th>Time in</th><th>Remark</th></tr>
+      ${fa.map((x, i) => `<tr><td>${i + 1}</td><td class="n">${esc(coreName(x.s))}</td>${all ? `<td>${esc(x.s.section)}</td>` : ''}<td>${esc(t12(x.t))}</td><td>${x.early ? 'Early bird' : x.st === 'L' ? 'Late' : 'On time'}</td></tr>`).join('') || '<tr><td colspan="5">None</td></tr>'}</table>`;
+  } else {
+    html += `<table><tr><th>Class days</th><th>Arrivals recorded</th><th>Early-bird arrivals</th><th>Arrivals on time</th><th>Tardy arrivals</th><th>Cutting classes</th><th>Average arrival</th><th>Perfect time record</th></tr>
+      <tr><td>${W.days}</td><td>${S.present}</td><td>${S.early} (${pct(S.earlyRate)})</td><td>${pct(S.punct)}</td><td>${S.tardy}</td><td>${S.cuts}</td><td>${esc(hmOf(S.avgArr))}</td><td>${W.exemplars.length}</td></tr></table>`;
+    if (all) html += `<h2>Section standings</h2><table><tr><th style="width:30px">Rank</th><th class="n">Section</th><th>Adviser</th><th>Arrivals on time</th><th>Early-bird arrivals</th><th>Average arrival</th><th>Perfect time record</th></tr>
+      ${W.standings.map((o, i) => `<tr><td>${i + 1}</td><td class="n">${esc(o.section)}</td><td>${esc(secInfo(o.section).adviser)}</td><td>${pct(o.punct)}</td><td>${o.early} (${pct(o.earlyRate)})</td><td>${esc(hmOf(o.avgArr))}</td><td>${o.exemplars}</td></tr>`).join('')}</table>
+      <h2>School-wide early birds — Top 10</h2><table>${thead}${rows(W.ranked, 10) || '<tr><td colspan="7">None</td></tr>'}</table>`;
+    (all ? Object.keys(W.perSec).sort() : [sec]).forEach(n => {
+      html += `<h2>Early bird awardees — ${esc(n)}</h2><table>${thead.replace('<th>Section</th>', '')}${(W.perSec[n] || []).slice(0, all ? 3 : 10).map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td><td>${s.early}</td><td>${s.onTime}</td><td>${s.tardy}</td><td>${esc(hmOf(s.avgArr))}</td></tr>`).join('') || '<tr><td colspan="6">None</td></tr>'}</table>`;
+    });
+    html += `<h2>WATCH exemplars — perfect time record (${W.exemplars.length})</h2><div class="sub">Present on every class day, never late, never cut classes.</div>
+      <table><tr><th style="width:30px">No.</th><th class="n">Name</th>${all ? '<th>Section</th>' : ''}<th>Days present</th><th>Average arrival</th></tr>
+      ${W.exemplars.map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td>${all ? `<td>${esc(s.section)}</td>` : ''}<td>${s.present}</td><td>${esc(hmOf(s.avgArr))}</td></tr>`).join('') || '<tr><td colspan="5">None</td></tr>'}</table>
+      <h2>Learners who need reminders on time consciousness (${W.coach.length})</h2>
+      <table><tr><th style="width:30px">No.</th><th class="n">Name</th>${all ? '<th>Section</th>' : ''}<th>Tardy</th><th>Cutting classes</th><th>Average arrival</th><th class="n">Suggested action</th></tr>
+      ${W.coach.map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td>${all ? `<td>${esc(s.section)}</td>` : ''}<td>${s.tardy}</td><td>${s.cuts}</td><td>${esc(hmOf(s.avgArr))}</td><td class="n">${s.cuts ? 'Talk with the learner and parent about leaving class; follow the Care list' : 'Adviser reminder on arriving on time; recognize improvement'}</td></tr>`).join('') || '<tr><td colspan="7">None</td></tr>'}</table>`;
+  }
+  html += `<div class="sub" style="margin-top:8px">Basis: early bird = arrived ${earlyMin()} minutes or more before the late-after time of the learner's section on that day; on time = not marked late; perfect time record = present every class day, never late, never cut classes. Ties are broken by the earlier average arrival time.</div>` + watchSigns(sec);
+  paper(html);
+}
+function pickCerts(sec, p, W) {
+  const cand = [];
+  (sec === 'ALL' ? Object.keys(W.perSec).sort() : [sec]).forEach(n => (W.perSec[n] || []).slice(0, sec === 'ALL' ? 3 : 10).forEach((s, i) => cand.push({ s: s, kind: 'early', rank: i + 1, on: i < 3 })));
+  W.exemplars.forEach(s => cand.push({ s: s, kind: 'exemplar', on: false }));
+  if (!cand.length) return toast('No awardees yet for this period.');
+  const ord = ['1st', '2nd', '3rd'];
+  sheet(`<h4>Certificates — ${esc(p.label)}</h4><div class="note">Top 3 early birds per section are ticked. Add WATCH exemplars if you wish.</div>
+    ${cand.map((c, i) => `<label class="pick"><input type="checkbox" data-c="${i}" ${c.on ? 'checked' : ''}><span style="flex:1">${esc(c.s.name)}<br><span class="note">${esc(c.s.section)} · ${c.kind === 'early' ? 'Early Bird ' + (ord[c.rank - 1] || c.rank + 'th') + ' · ' + c.s.early + ' early days' : 'WATCH Exemplar · perfect time record'}</span></span></label>`).join('')}
+    <div class="opt"><button class="btn gold" id="cGo">Make certificates</button></div>`);
+  $('#cGo').onclick = () => {
+    const pick = [...document.querySelectorAll('#sheet [data-c]')].filter(b => b.checked).map(b => cand[+b.dataset.c]);
+    if (!pick.length) return toast('Tick at least one learner.');
+    closeSheet(); printCerts(pick, p, W);
+  };
+}
+function printCerts(list, p, W) {
+  const S = A.boot.settings, ord = ['First', 'Second', 'Third'];
+  const logo = f => `<img src="${f}" alt="" onerror="this.style.visibility='hidden'">`;
+  paper(list.map(c => { const s = c.s, i = secInfo(s.section);
+    const title = c.kind === 'early' ? 'Early Bird Award' : 'WATCH Exemplar Award';
+    const place = c.kind === 'early' && c.rank <= 3 ? `<div class="cplace">${ord[c.rank - 1]} Place · ${esc(s.section)}</div>` : '';
+    const why = c.kind === 'early'
+      ? `for arriving early on <b>${s.early}</b> of <b>${s.present}</b> school days attended, with an average arrival time of <b>${esc(hmOf(s.avgArr))}</b>`
+      : `for keeping a perfect time record — present on all <b>${s.present}</b> class days, never late, and never leaving class`;
+    return `<div class="cert"><div class="cin">
+      <div class="clh">${logo('logo-deped.png')}<div><div>Republic of the Philippines · Department of Education</div><div>${esc(S.regionName || S.region)} · Schools Division of ${esc(S.division)}</div><b>${esc(S.school)}</b></div>${logo('logo-school.png')}</div>
+      <div class="ctitle">Certificate of Recognition</div><div class="csub">is proudly presented to</div>
+      <div class="cname">${esc(s.s.first + ' ' + (s.s.middle && s.s.middle !== '-' ? s.s.middle.charAt(0) + '. ' : '') + s.s.last)}</div>
+      <div class="csub">${esc([i.grade, s.section].filter(Boolean).join(' — '))}</div>
+      <div class="caward">${title}</div>${place}
+      <p class="cwhy">${why}, during <b>${esc(p.label)}</b>, showing exemplary time consciousness and honesty in support of <b>WATCH: We Advocate Time Consciousness and Honesty</b>.</p>
+      <p class="cdate">Given this ${esc(niceDate(today()))} at ${esc(S.school)}.</p>
+      <div class="csign"><div><b>${esc(i.adviser)}</b>Class Adviser</div><div><b>${esc(S.watch)}</b>WATCH Coordinator</div><div><b>${esc(S.principal)}</b>School Head</div></div>
+    </div></div>`; }).join(''), true);
+}
+
+/* ───────── CARE (interventions) ───────── */
+const TIERS = { home: ['Home visitation', 'For home visit'], counsel: ['Counseling', 'For counseling'], monitor: ['Monitor', 'Watch list'] };
+async function vCare() {
+  const p = period();
+  $('#view').innerHTML = '<h2>Care list</h2>' + periodBar() + '<p class="note">Loading…</p>';
+  bindPeriod(vCare);
+  const fresh = await ensure(p.from, p.to);
+  if (U.view !== 'care') return;
+  const r = compute(U.sec, p.from, p.to), flagged = r.students.filter(s => s.tier && coreActive(s.s, today()));
+  const by = t => flagged.filter(s => s.tier === t).sort((a, b) => b.absent - a.absent);
+  const card = s => {
+    const logs = A.boot.log.filter(l => l.id === s.id).slice(-2);
+    return `<div class="card care ${s.tier}"><div class="who">${esc(s.name)}</div><div class="note">${esc(s.section)}${s.critical ? ' · <b style="color:var(--coral)">AT RISK OF DROPPING OUT</b>' : ''}</div>
+      <div class="chips"><span class="chip">${s.absent} absent</span><span class="chip">${s.tardy} tardy</span><span class="chip">longest streak ${s.maxStreak}</span>${s.outs ? `<span class="chip">went out ${s.outs}×</span>` : ''}${s.cuts ? `<span class="chip" style="background:#f7dcef;color:#8a1f66">cut classes ${s.cuts}×</span>` : ''}<span class="chip">${pct(s.rate)} attendance</span></div>
+      <p><b>Why:</b> ${esc(s.reasons.join('; '))}.</p><p><b>Suggested action:</b> ${esc(s.action)}</p>
+      ${s.s.guardian || s.s.contact || s.s.address ? `<p class="note">${esc([s.s.guardian, s.s.contact, s.s.address].filter(Boolean).join(' · '))}</p>` : ''}
+      ${logs.map(l => `<div class="log">✓ ${esc(l.date)} — ${esc(l.type)}${l.notes ? ': ' + esc(l.notes) : ''}</div>`).join('')}
+      <button class="btn sm ghost" data-id="${esc(s.id)}" style="margin-top:10px">Log an action</button></div>`;
+  };
+  $('#view').innerHTML = `<h2>Care list</h2>${periodBar()}
+    ${fresh ? '' : '<div class="warn">Offline — based only on attendance stored on this phone.</div>'}
+    <div class="tiles"><div class="tile a"><b>${by('home').length}</b><span>Home visit</span></div><div class="tile l"><b>${by('counsel').length}</b><span>Counseling</span></div><div class="tile p"><b>${by('monitor').length}</b><span>Monitor</span></div></div>
+    <button class="btn" id="cPrint" style="width:100%">Intervention report</button>
+    ${['home', 'counsel', 'monitor'].map(t => by(t).length ? `<h3>${TIERS[t][1]}</h3>` + by(t).map(card).join('') : '').join('')}
+    ${flagged.length ? '' : '<div class="card" style="margin-top:12px"><b>No learner needs an intervention for this period.</b><div class="note">Everyone is within the attendance limits set in Settings.</div></div>'}`;
+  bindPeriod(vCare);
+  $('#cPrint').onclick = () => printCare(U.sec, p, flagged);
+  document.querySelectorAll('.care button').forEach(b => b.onclick = () => logAction(r.students.find(s => s.id === b.dataset.id)));
+}
+function logAction(s) {
+  sheet(`<h4>Log an action</h4><div class="note">${esc(s.name)} · ${esc(s.section)}</div>
+    <div class="opt"><select id="laT"><option>Home visitation</option><option>Counseling</option><option>Parent/guardian contacted</option><option>Adviser conference with learner</option><option>Referred to School Head</option></select>
+    <textarea id="laN" rows="3" placeholder="Notes: what was found, what was agreed" maxlength="400"></textarea><button class="btn" id="laS">Save</button></div>`);
+  $('#laS').onclick = async () => {
+    const o = { date: today(), id: s.id, name: s.name, section: s.section, type: $('#laT').value, notes: $('#laN').value.trim() };
+    try { await call('apiLogIntervention', o); A.boot.log.push(o); LS.set('boot', A.boot); closeSheet(); vCare(); toast('Saved to the Interventions sheet.'); }
+    catch (e) { toast('Needs internet to save. Try again later.'); }
+  };
+}
+
+/* ───────── MORE ───────── */
+function vMore() {
+  const S = A.boot.settings, nc = Object.keys(A.boot.noClass).sort().reverse();
+  $('#view').innerHTML = `<h2>IDs &amp; more</h2>
+    <div class="card" id="instCard" hidden style="border-color:#efd58b;background:var(--goldbg)"><b>Install NARITO as an app</b><div class="note" style="margin:2px 0 10px">Get its own icon on the home screen. It opens full screen and works with no signal.</div>
+      <button class="btn gold" id="instM" style="width:100%">⤓ Install NARITO</button></div>
+    <div class="card"><b>QR ID cards</b><div class="note" style="margin:2px 0 10px">One card per learner with name, section and personal QR. Print all, or only new learners. Existing cards never change.</div>
+      <div class="row"><select id="qSec" aria-label="Section">${secOpts(U.sec === 'ALL' ? '' : U.sec, false)}</select><button class="btn" id="qGo">Make ID cards</button></div></div>
+    <div class="card"><b>School schedule</b><div class="note" style="margin:2px 0 10px">Regular: late after ${esc(t12(S.late))}, dismissal ${esc(t12(S.dismiss))}. ${A.boot.sections.filter(s => s.late || s.dismiss).length} section(s) with their own times · ${(A.boot.presets || []).length} preset(s).</div>
+      <button class="btn ghost" id="mSch" style="width:100%">Edit school schedule</button></div>
+    <div class="card"><b>No-class days</b><div class="note" style="margin:2px 0 10px">Holidays and suspensions are left out of every report.</div>
+      <div class="row"><input type="date" id="nDate" value="${today()}" aria-label="Date"><button class="btn ghost" id="nAdd">Add</button></div>
+      ${nc.length ? '<div style="margin-top:10px">' + nc.map(d => `<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span><b>${esc(niceDate(d))}</b><br><span class="note">${esc(A.boot.noClass[d])}</span></span><button class="btn sm ghost" data-d="${d}">Remove</button></div>`).join('') + '</div>' : ''}</div>
+    <div class="card"><b>Data</b><div class="note" style="margin:2px 0 10px">${A.boot.students.length} learners · ${A.boot.sections.length} sections · ${A.queue.length} scan(s) waiting to sync</div>
+      <div class="row"><button class="btn ghost" id="mSync">Sync now</button><button class="btn ghost" id="mRef">Refresh learner list</button></div>
+      ${S.sheetUrl ? `<a class="btn ghost" style="display:block;margin-top:8px" href="${esc(S.sheetUrl)}" target="_blank" rel="noopener">Open the Google Sheet</a>` : ''}</div>
+    <div class="card"><b>${esc(S.school)}</b><div class="note">SY ${esc(S.sy)}<br>School Head: ${esc(S.principal || '—')} · LIS Coordinator: ${esc(S.lis || '—')}</div>
+      <button class="btn ghost" id="mOut" style="width:100%;margin-top:10px">Log out</button></div>
+    <p class="note" style="text-align:center">NARITO works without internet once opened. Keep this page open while scanning offline; scans sync by themselves when the signal returns.</p>
+    <p class="note" style="text-align:center;margin-top:14px"><b style="color:var(--ink);letter-spacing:.1em">NARITO</b> · <i>Bawat pagdalo, binibilang. Bawat pagliban, tinutugunan.</i><br>Developed by <b style="color:var(--ink)">Joy P. Bacala</b>, Teacher I · Samal Senior High School</p>`;
+  $('#qGo').onclick = () => pickIds($('#qSec').value);
+  $('#mSch').onclick = schoolSchedule;
+  $('#instM').onclick = installApp; showInstall();
+  $('#nAdd').onclick = () => noClass($('#nDate').value, false);
+  document.querySelectorAll('[data-d]').forEach(b => b.onclick = () => noClass(b.dataset.d, true));
+  $('#mSync').onclick = () => $('#pill').click();
+  $('#mRef').onclick = async () => { try { A.boot = await call('apiBoot'); A.secT = null; LS.set('boot', A.boot); toast('Learner list updated.'); vMore(); } catch (e) { toast('Needs internet.'); } };
+  $('#mOut').onclick = () => { if (A.queue.length && !confirm(A.queue.length + ' scan(s) are not synced yet. They stay on this phone. Log out anyway?')) return; LS.set('pin', ''); location.reload(); };
+}
+
+/* ───────── printable reports ───────── */
+function paper(html, landscape) {
+  $('#paper').innerHTML = html; $('#paper').classList.toggle('land', !!landscape);
+  let st = $('#pgsz'); if (!st) { st = document.createElement('style'); st.id = 'pgsz'; document.head.appendChild(st); }
+  st.textContent = landscape ? '@page{size:A4 landscape;margin:8mm}' : '';
+  $('#print').hidden = false; $('#print').scrollTop = 0;
+}
+$('#pclose').onclick = () => $('#print').hidden = true;
+$('#pgo').onclick = () => window.print();
+function docHead(title, sec, period) {
+  const S = A.boot.settings, i = sec === 'ALL' ? null : secInfo(sec);
+  const logo = f => `<img src="${f}" alt="" onerror="this.outerHTML='<span class=sp></span>'">`;
+  const cell = (k, v) => `<div><span>${k}</span>${esc(v || '—')}</div>`;
+  return `<div class="lh">${logo('logo-deped.png')}<div class="tx"><div class="l1">Republic of the Philippines</div><div class="l2">Department of Education</div>
+      <div class="l3">${esc(S.regionName || S.region)}</div><div class="l3">Schools Division of ${esc(S.division)}</div>
+      <div class="l4">${esc(S.school)}</div><div class="l5">${esc(S.address || '')}</div></div>${logo('logo-school.png')}</div>
+    <h1>${esc(title)}</h1>
+    <div class="info">${cell('School ID', S.schoolId)}${cell('School Year', S.sy)}${cell('Period covered', period)}
+      ${cell('Grade level and section', i ? [i.grade, i.name].filter(Boolean).join(' — ') : 'All sections')}${cell('Track and strand', i ? i.track + (i.strand ? ' — ' + i.strand : '') : 'All tracks')}${cell('Class adviser', i ? i.adviser : '—')}</div>`;
+}
+function signs(sec) {
+  const S = A.boot.settings, adv = sec === 'ALL' ? '' : secInfo(sec).adviser;
+  const col = (cap, name, role) => `<div><div class="cap">${cap}</div><b>${esc(name)}</b>${role}</div>`;
+  return `<div class="sign">${col('Prepared by:', adv, 'Class Adviser')}${col('Checked and verified by:', S.lis, 'LIS Coordinator')}${col('Attested by:', S.principal, 'School Head')}</div>
+    <div class="foot">Generated through NARITO on ${esc(niceDate(today()))}, ${esc(t12(nowHM()))}. NARITO was developed by Joy P. Bacala, Teacher I, Samal Senior High School.</div>`;
+}
+function printDaily(sec, d) {
+  const m = A.rec[d] || {}, L = { P: 'Present', L: 'Late', E: 'Excused', A: 'ABSENT' };
+  const cnt = { M: { p: 0, l: 0, a: 0, c: 0 }, F: { p: 0, l: 0, a: 0, c: 0 } };
+  const rows = roster(sec, d).map(s => { const r = m[s.id], st = r ? r[0] : 'A', g = cnt[s.sex === 'F' ? 'F' : 'M'];
+    const y = dayOf(r, d, s.section); if (st === 'P' || st === 'L') g.p++; else g.a++; if (st === 'L') g.l++; if (y.cut) g.c++; return { s: s, st: st, t: r ? r[1] : '', r: r, y: y }; });
+  const went = rows.filter(x => x.y.outs > 0 || x.y.cut || x.y.outside);
+  const remark = y => y.cut ? (y.leftEarly ? 'Cutting classes — left early, did not return' : 'Cutting classes') : y.leftEarly ? 'Left a little early' : y.home ? 'Went home after dismissal' : y.outside ? 'Still outside' : 'Returned';
+  const tbl = (title, list, time) => `<h2>${title} (${list.length})</h2><table><tr><th style="width:34px">No.</th><th class="n">Name</th>${sec === 'ALL' ? '<th>Section</th>' : ''}<th style="width:40px">Sex</th>${time ? '<th style="width:80px">Time in</th>' : ''}<th style="width:90px">Status</th></tr>
+    ${list.map((x, i) => `<tr><td>${i + 1}</td><td class="n">${esc(coreName(x.s))}</td>${sec === 'ALL' ? `<td>${esc(x.s.section)}</td>` : ''}<td>${x.s.sex}</td>${time ? `<td>${esc(t12(x.t))}</td>` : ''}<td>${L[x.st]}</td></tr>`).join('') || `<tr><td colspan="6">None</td></tr>`}</table>`;
+  const T = k => cnt.M[k] + cnt.F[k];
+  paper(docHead('Daily Attendance Report', sec, DOWS[coreDow(d)] + ', ' + niceDate(d)) + (schedNote(d, sec) ? `<div class="sub"><b>Special schedule:</b> ${esc(schedNote(d, sec))}</div>` : '') +
+    `<table><tr><th></th><th>Male</th><th>Female</th><th>Total</th></tr>
+      <tr><td class="n">Present</td><td>${cnt.M.p}</td><td>${cnt.F.p}</td><td><b>${T('p')}</b></td></tr>
+      <tr><td class="n">of which Late / Tardy</td><td>${cnt.M.l}</td><td>${cnt.F.l}</td><td><b>${T('l')}</b></td></tr>
+      <tr><td class="n">of which Cutting classes</td><td>${cnt.M.c}</td><td>${cnt.F.c}</td><td><b>${T('c')}</b></td></tr>
+      <tr><td class="n">Absent</td><td>${cnt.M.a}</td><td>${cnt.F.a}</td><td><b>${T('a')}</b></td></tr>
+      <tr><td class="n">Attendance rate</td><td colspan="3"><b>${rows.length ? pct(T('p') / rows.length * 100) : '—'}</b></td></tr></table>` +
+    tbl('Absent', rows.filter(x => x.st === 'A' || x.st === 'E'), false) + tbl('Present', rows.filter(x => x.st === 'P' || x.st === 'L'), true) +
+    `<h2>In / out log (${went.length})</h2><div class="sub">${sec === 'ALL' ? 'Dismissal follows each section’s schedule' : 'Dismissal ' + esc(t12(schedFor(d, sec).dismiss))} · lunch break ${esc(t12(schedFor(d, sec).lunchS))}–${esc(t12(schedFor(d, sec).lunchE))} not counted · cutting classes = ${schedFor(d, sec).cutMin} minutes or more outside during class hours</div>
+    <table><tr><th style="width:34px">No.</th><th class="n">Name</th>${sec === 'ALL' ? '<th>Section</th>' : ''}<th class="n">Movements</th><th style="width:52px">Times out</th><th style="width:70px">Time outside</th><th class="n" style="width:150px">Remark</th></tr>
+      ${went.map((x, i) => `<tr><td>${i + 1}</td><td class="n">${esc(coreName(x.s))}</td>${sec === 'ALL' ? `<td>${esc(x.s.section)}</td>` : ''}<td class="n">${esc(trail(x.r))}</td><td>${x.y.outs}</td><td>${mins(x.y.minOut)}</td><td class="n">${remark(x.y)}</td></tr>`).join('') || '<tr><td colspan="7">None</td></tr>'}</table>` + signs(sec));
+}
+function printSummary(sec, p, r, multi) {
+  const months = multi ? monthsIn(p).map(ym => ({ ym: ym, m: compute(sec, ym + '-01', coreMonthEnd(ym) < p.to ? coreMonthEnd(ym) : p.to) })) : [];
+  paper(docHead(multi ? 'Attendance Summary Report' : 'Monthly Attendance Summary', sec, multi ? p.label : p.label) +
+    `<table><tr><th>Class days</th><th>Registered learners</th><th>Average daily attendance</th><th>Percentage of attendance</th><th>Total absences</th><th>Total tardy</th><th>Cutting classes</th></tr>
+      <tr><td>${r.days}</td><td>${r.reg}</td><td>${Math.round(r.ada * 100) / 100}</td><td>${pct(r.pct)}</td><td>${r.abs}</td><td>${r.tardy}</td><td>${r.cuts}</td></tr></table>` +
+    (multi ? `<h2>Month by month</h2><table><tr><th class="n">Month</th><th>Class days</th><th>Average daily attendance</th><th>Percentage of attendance</th><th>Absences</th><th>Tardy</th></tr>
+      ${months.map(x => `<tr><td class="n">${esc(niceMonth(x.ym))}</td><td>${x.m.days}</td><td>${Math.round(x.m.ada * 100) / 100}</td><td>${pct(x.m.days ? x.m.pct : null)}</td><td>${x.m.abs}</td><td>${x.m.tardy}</td></tr>`).join('')}</table>` : '') +
+    `<h2>Per learner</h2><table><tr><th style="width:34px">No.</th><th class="n">Name</th>${sec === 'ALL' ? '<th>Section</th>' : ''}<th>Sex</th><th>Days present</th><th>Days absent</th><th>Times tardy</th><th>Times went out</th><th>Times cutting classes</th><th>Longest consecutive absence</th><th>% attendance</th></tr>
+      ${r.students.map((s, i) => `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}</td>${sec === 'ALL' ? `<td>${esc(s.section)}</td>` : ''}<td>${s.sex}</td><td>${s.present}</td><td>${s.absent}</td><td>${s.tardy}</td><td>${s.outs}</td><td>${s.cuts}</td><td>${s.maxStreak}</td><td>${pct(s.rate)}</td></tr>`).join('')}</table>` + signs(sec));
+}
+function printCare(sec, p, flagged) {
+  const order = { home: 0, counsel: 1, monitor: 2 };
+  const list = flagged.slice().sort((a, b) => order[a.tier] - order[b.tier] || b.absent - a.absent);
+  paper(docHead('Attendance Intervention Report', sec, p.label) +
+    `<table><tr><th style="width:28px">No.</th><th class="n">Learner</th>${sec === 'ALL' ? '<th>Section</th>' : ''}<th>Absent</th><th>Tardy</th><th>Cutting</th><th>Longest streak</th><th>Intervention</th><th class="n">Basis</th><th class="n">Recommended action</th><th class="n" style="width:110px">Action taken / date</th></tr>
+      ${list.map((s, i) => { const l = A.boot.log.filter(x => x.id === s.id).slice(-1)[0];
+        return `<tr><td>${i + 1}</td><td class="n">${esc(s.name)}${s.s.guardian || s.s.contact ? `<br><i>${esc([s.s.guardian, s.s.contact].filter(Boolean).join(', '))}</i>` : ''}</td>${sec === 'ALL' ? `<td>${esc(s.section)}</td>` : ''}<td>${s.absent}</td><td>${s.tardy}</td><td>${s.cuts}</td><td>${s.maxStreak}</td><td><b>${TIERS[s.tier][0]}</b></td><td class="n">${esc(s.reasons.join('; '))}</td><td class="n">${esc(s.action)}</td><td class="n">${l ? esc(l.type + ' — ' + l.date) : ''}</td></tr>`; }).join('') || '<tr><td colspan="11">No learner needs an intervention for this period.</td></tr>'}</table>
+    <div class="sub">Home visitation: ${list.filter(s => s.tier === 'home').length} · Counseling: ${list.filter(s => s.tier === 'counsel').length} · Monitor: ${list.filter(s => s.tier === 'monitor').length}</div>` + signs(sec));
+}
+function pickIds(sec) {
+  if (!sec) return toast('Choose a section.');
+  const list = roster(sec, today()).slice().sort((a, b) => b.id.localeCompare(a.id));
+  if (!list.length) return toast('No learners with a Student ID in ' + sec + '. Check the Students tab, then tap Refresh learner list.');
+  sheet(`<h4>ID cards — ${esc(sec)}</h4><div class="note">Newest learners are on top. Tick only the ones you need.</div>
+    <div class="row" style="margin:10px 0 4px"><button class="btn sm ghost" id="pA">Select all</button><button class="btn sm ghost" id="pN">Select none</button><span class="note" id="pC" style="text-align:right"></span></div>
+    ${list.map(s => `<label class="pick"><input type="checkbox" value="${esc(s.id)}" checked><span style="flex:1">${esc(coreName(s))}</span><span class="note">${esc(s.id)}</span></label>`).join('')}
+    <div class="opt"><button class="btn" id="pGo">Make ID cards</button></div>`);
+  const boxes = () => [...document.querySelectorAll('#sheet input[type=checkbox]')];
+  const count = () => { $('#pC').textContent = boxes().filter(b => b.checked).length + ' selected'; };
+  boxes().forEach(b => b.onchange = count); count();
+  $('#pA').onclick = () => { boxes().forEach(b => b.checked = true); count(); };
+  $('#pN').onclick = () => { boxes().forEach(b => b.checked = false); count(); };
+  $('#pGo').onclick = () => { const ids = boxes().filter(b => b.checked).map(b => b.value); if (!ids.length) return toast('Tick at least one learner.'); closeSheet(); printIds(sec, ids); };
+}
+function printIds(sec, ids) {
+  if (!sec) return toast('Choose a section.');
+  if (typeof qrcode === 'undefined') return toast('The QR maker did not load. Connect to the internet and reopen the app.');
+  const S = A.boot.settings, i = secInfo(sec);
+  if (!roster(sec, today()).length) return toast('No learners with a Student ID in ' + sec + '. Check the Students tab, then tap Refresh learner list.');
+  const cards = roster(sec, today()).filter(s => !ids || ids.indexOf(s.id) > -1).map(s => { const q = qrcode(0, 'M'); q.addData('NARITO:' + s.id); q.make();
+    return `<div class="id"><div class="s">${esc(S.school)}</div><img src="${q.createDataURL(6, 10)}" alt=""><div class="n">${esc(coreName(s))}</div><div class="m">${esc([i.grade, sec].filter(Boolean).join(' · '))}<br>${esc(s.id)} · SY ${esc(S.sy)}</div></div>`; });
+  paper(`<div class="ids">${cards.join('')}</div>`);
+}
+
+/* ───────── demo data (only when the file is opened outside Apps Script) ───────── */
+const DEMO = (function () {
+  if (!DEMO_MODE) return null;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const LN = ['Abad', 'Bautista', 'Castro', 'Dela Cruz', 'Estrada', 'Flores', 'Garcia', 'Hernandez', 'Ilagan', 'Javier', 'Lim', 'Mendoza', 'Navarro', 'Ocampo', 'Pascual', 'Quiambao', 'Ramos', 'Santos', 'Torres', 'Uy', 'Valdez', 'Yap'];
+  const FM = ['Juan', 'Mark', 'Paolo', 'Ben', 'Carlo', 'Noel'], FF = ['Maria', 'Ana', 'Liza', 'Joy', 'Grace', 'Rica', 'Bea', 'Mae'];
+  const sections = [{ name: 'AMENITY', grade: 'Grade 11', track: 'Technical-Vocational-Livelihood Track', strand: '', course: 'Bread and Pastry Production (NC II), Cookery (NC II)', adviser: 'Sample Adviser' },
+    { name: 'HARMONY', grade: 'Grade 12', track: 'Academic Track', strand: 'HUMSS', course: '', adviser: 'Another Adviser' }];
+  const students = [], recs = [];
+  sections.forEach((sec, k) => { for (let i = 0; i < 16; i++) { const f = rnd() < .6;
+    students.push({ id: 'DEMO-' + pad(k) + pad(i), last: LN[(i * 3 + k * 5) % LN.length], first: (f ? FF : FM)[i % (f ? 8 : 6)], middle: LN[(i + 9) % LN.length].charAt(0) + '.', sex: f ? 'F' : 'M', section: sec.name,
+      enroll: '', enrollType: '', exit: '', exitType: '', remarks: '', guardian: 'Parent of ' + LN[(i * 3 + k * 5) % LN.length], contact: '09xx xxx xxxx', address: 'Sample barangay' }); } });
+  let d = coreAdd(today(), -75);
+  while (d <= today()) { const w = coreDow(d);
+    if (w >= 1 && w <= 5) students.forEach((s, i) => { const risk = i % 16 === 3 ? .45 : i % 16 === 7 ? .22 : .05; const streak = i === 5 && d >= coreAdd(today(), -9);
+      if (d === today() && rnd() < .5) return;
+      if (!streak && rnd() > risk) { const tm = '07:' + pad(20 + Math.floor(rnd() * 39)); recs.push([d, s.id, rnd() < (i % 16 === 9 ? .5 : .06) ? 'L' : 'P', tm, 'scan', 'I' + tm + (i % 16 === 2 && rnd() < .5 ? ' O10:05 I10:25' : i % 16 === 11 && rnd() < .3 ? ' O14:10' : ' O16:0' + (i % 9))]); } });
+    d = coreAdd(d, 1); }
+  const t = today(), y = +t.slice(0, 4), boot = { settings: { school: 'Samal Senior High School (demo data)', schoolId: '341526', district: 'Samal', division: 'Island Garden City of Samal', region: 'Region XI',
+    sy: y + ' - ' + (y + 1), principal: 'School Head Name', lis: 'LIS Coordinator Name', late: '07:45', earlyMin: '15', watch: 'WATCH Coordinator Name', dismiss: '16:00', lunchS: '12:00', lunchE: '13:00', cutMin: '30', regionName: 'Davao Region', address: 'Sitio Pasig, Brgy. Peñaplata, District II, Island Garden City of Samal', t1s: coreAdd(t, -150), t1e: coreAdd(t, -61), t2s: coreAdd(t, -60), t2e: coreAdd(t, 30), t3s: coreAdd(t, 31), t3e: coreAdd(t, 120), cutoff: '' },
+    sections: sections, students: students, noClass: {}, sched: {}, presets: [{ name: 'Half day — morning only', late: '', dismiss: '12:00' }, { name: 'Half day — afternoon only', late: '13:00', dismiss: '' }], log: [] };
+  return {
+    apiBoot: () => JSON.parse(JSON.stringify(boot)), apiRecords: (a, b) => recs.filter(r => r[0] >= a && r[0] <= b),
+    apiSync: b => { b.forEach(q => { const i = recs.findIndex(r => r[0] === q.d && r[1] === q.id); let r = recs[i];
+      if (q.st === 'X') { if (r) recs.splice(i, 1); return; }
+      if (!r) { r = [q.d, q.id, q.st || 'P', q.t || '', q.src, !q.mv && q.st !== 'E' && q.t ? 'I' + q.t : '']; recs.push(r); }
+      else if (q.st && q.src === 'manual') { r[2] = q.st; if (q.t) r[3] = q.t; r[4] = 'manual'; }
+      if (q.mv && q.t) r[5] = coreAddMove(r[5], q.mv, q.t, r[2] === 'E' ? '' : r[3]); }); return { ok: true }; },
+    apiDaySchedule: o => { o.dates.forEach(dd => { const k = dd + (o.section ? '|' + o.section : ''); if (o.late || o.dismiss) boot.sched[k] = { late: o.late, dismiss: o.dismiss, note: o.note }; else delete boot.sched[k]; });
+      if (o.preset && (o.late || o.dismiss)) boot.presets.push({ name: o.note, late: o.late, dismiss: o.dismiss }); return { sched: Object.assign({}, boot.sched), presets: boot.presets.slice() }; },
+    apiPreset: (n) => { boot.presets = boot.presets.filter(p => p.name !== n); return boot.presets.slice(); },
+    apiSaveSchedule: o => { Object.assign(boot.settings, { late: o.late, dismiss: o.dismiss, lunchS: o.lunchS, lunchE: o.lunchE, cutMin: o.cutMin });
+      boot.sections.forEach(s => { const x = o.sections[s.name]; if (x) { s.late = x.late; s.dismiss = x.dismiss; } }); return JSON.parse(JSON.stringify(boot)); },
+    apiNoClass: (dd, why) => { if (why) boot.noClass[dd] = why; else delete boot.noClass[dd]; return Object.assign({}, boot.noClass); },
+    apiLogIntervention: () => true, apiSf2: () => { throw new Error('SF2 is created inside your Google Sheet (not available in demo).'); }
+  };
+})();
+
+/* ───────── install as an app ───────── */
+let installEvt = null;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; showInstall(); });
+addEventListener('appinstalled', () => { installEvt = null; showInstall(); toast('NARITO is installed. Open it from your home screen.'); });
+function showInstall() {
+  const can = !HAS_GAS && !DEMO_MODE && !standalone();
+  const b = $('#instL'); if (b) b.hidden = !can;
+  const c = $('#instCard'); if (c) c.hidden = !can;
+}
+async function installApp() {
+  if (installEvt) { installEvt.prompt(); const r = await installEvt.userChoice; if (r.outcome === 'accepted') installEvt = null; return; }
+  sheet(`<h4>Install NARITO</h4><div class="note" style="margin-bottom:10px">Install it once; it then opens from its own icon, full screen, even with no signal.</div>
+    ${isIOS() ? `<ol class="note" style="padding-left:18px;line-height:1.7"><li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share</b> button (square with an arrow).</li><li>Tap <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol>`
+      : `<ol class="note" style="padding-left:18px;line-height:1.7"><li>Open this page in <b>Chrome</b> (not inside Messenger or Facebook).</li><li>Tap the <b>⋮</b> menu at the top right.</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>, then <b>Install</b>.</li></ol>`}
+    <div class="opt"><button class="btn" onclick="closeSheet()">OK</button></div>`);
+}
+$('#instL').onclick = installApp;
+
+/* ───────── start ───────── */
+(function () {
+  const saved = LS.get('pin', '');
+  if (DEMO_MODE) { $('#pin').value = 'demo'; $('#lmsg').textContent = 'Demo mode — sample data only'; }
+  showInstall();
+  if (!HAS_GAS && !DEMO_MODE) {
+    if (!API) API = LS.get('api', '');
+    $('#api').hidden = !!API;
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  if (saved) login(saved, true);
+})();
+</script>
+</body>
+</html>
