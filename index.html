@@ -120,6 +120,8 @@ background:linear-gradient(var(--gold),var(--gold)) 0 0/34px 4px,linear-gradient
 linear-gradient(var(--gold),var(--gold)) 100% 0/34px 4px,linear-gradient(var(--gold),var(--gold)) 100% 0/4px 34px,
 linear-gradient(var(--gold),var(--gold)) 0 100%/34px 4px,linear-gradient(var(--gold),var(--gold)) 0 100%/4px 34px,
 linear-gradient(var(--gold),var(--gold)) 100% 100%/34px 4px,linear-gradient(var(--gold),var(--gold)) 100% 100%/4px 34px;background-repeat:no-repeat}
+.finder .flip{position:absolute;right:10px;top:10px;z-index:2;display:flex;align-items:center;gap:6px;background:rgba(6,32,30,.72);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:99px;padding:8px 12px;font-size:13px;font-weight:700}
+.finder .flip svg{width:18px;height:18px;stroke:#ffd98a;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .finder .start{position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-align:center;padding:20px}
 .finder .start .btn{font-size:17px;padding:16px 26px}
 #res{border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);min-height:76px}
@@ -666,9 +668,31 @@ function go(v) {
   if (U.view === 'scan' && v !== 'scan') stopCam();
   U.view = v;
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
-  ({ scan: vScan, today: vToday, reports: vReports, watch: vWatch, care: vCare, more: vMore })[v]();
+  try {
+    const r = ({ scan: vScan, today: vToday, reports: vReports, watch: vWatch, care: vCare, more: vMore })[v]();
+    if (r && r.catch) r.catch(e => viewError(v, e));
+  } catch (e) { viewError(v, e); }
   scrollTo(0, 0);
 }
+const APP_V = 'NARITO build 2026-11-18c';
+/* Shows WHY a tab could not open (instead of doing nothing), with a safe repair button. */
+function viewError(v, e) {
+  const names = { scan: 'Scan', today: 'Daily', reports: 'Reports', watch: 'WATCH', care: 'Care', more: 'IDs & More' };
+  const msg = String(e && e.message || e);
+  const where = String(e && e.stack || '').split('\n').slice(0, 4).map(s => s.trim().replace(/https?:\/\/[^)\s]*\//g, '')).join(' ← ');
+  try { console.error('[NARITO]', v, e); } catch (x) {}
+  $('#view').innerHTML = `<div class="card" style="border-color:#f0b4ad;background:var(--coralbg);margin-top:8px"><b>${esc(names[v] || v)} could not open.</b>
+    <div class="note" style="margin:6px 0 8px">Please take a screenshot of this box and send it to the developer. Your saved scans are safe.</div>
+    <div style="font-family:ui-monospace,Consolas,monospace;font-size:12px;word-break:break-word;background:#fff;border-radius:10px;padding:8px 10px">${esc(msg)}<br><span style="color:#666">${esc(where)}</span><br><span style="color:#666">${APP_V}</span></div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" id="eRe">Reload</button><button class="btn sm ghost" id="eFix">Repair saved data</button></div></div>`;
+  $('#eRe').onclick = () => location.reload();
+  $('#eFix').onclick = () => {                         // keeps unsynced scans, PIN and Web app link
+    ['boot', 'recToday', 'mode'].forEach(k => { try { localStorage.removeItem('narito_' + k); } catch (x) {} });
+    location.reload();
+  };
+}
+addEventListener('error', e => { if (e && e.message && !$('#app').hidden) toast('Error: ' + e.message); });
+addEventListener('unhandledrejection', e => { const m = e && e.reason && (e.reason.message || e.reason); if (m && !$('#app').hidden && !/offline|timeout|network/i.test(String(m))) toast('Error: ' + m); });
 function soft() { if (U.view === 'scan') scanCounters(); else if (U.view === 'today') vToday(); }
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.v));
 
@@ -677,6 +701,7 @@ let cam = null, detector = null, scanOn = false, lastCode = '', lastAt = 0, actx
 function vScan() {
   $('#view').innerHTML = `
     <div class="finder"><video id="vid" playsinline muted></video><div class="corners"></div>
+      <button class="flip" id="flip" aria-label="Switch camera"><svg viewBox="0 0 24 24"><path d="M20 7h-3l-2-3H9L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M9 13.5a3 3 0 0 1 5.2-2M15 13.5a3 3 0 0 1-5.2 2M14.2 9.6v2h-2M9.8 17.4v-2h2"/></svg><span id="flipL"></span></button>
       <div class="start" id="start"><div><button class="btn gold" id="startBtn">Start scanner</button><p class="note" style="color:#cfe3dc;margin-top:12px">Point the camera at a learner's QR ID</p></div></div></div>
     <div id="res"><div class="ic">·</div><div><b>Ready</b><span>${esc(DOWS[new Date().getDay()])}, ${esc(niceDate(today()))} · late after ${esc(t12(schedFor(today(), U.scanSec).late))} · dismissal ${esc(t12(schedFor(today(), U.scanSec).dismiss))}${schedEntry(today(), U.scanSec) ? ' · ' + esc(schedEntry(today(), U.scanSec).note || 'special schedule') : ''}</span></div></div>
     <div class="seg" id="modeSeg"><button data-m="arrival">Arrival only</button><button data-m="gate">Gate: in &amp; out</button></div>
@@ -691,6 +716,8 @@ function vScan() {
   scanCounters();
   $('#scanSec').onchange = e => { U.scanSec = e.target.value; scanCounters(); };
   $('#startBtn').onclick = startCam;
+  $('#flip').onclick = switchCam; flipLabel();
+  $('#shot').setAttribute('capture', camFacing);
   $('#shot').onchange = e => { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); } catch (x) {} scanPhoto(e.target.files[0]); e.target.value = ''; };
   $('#find').onkeydown = e => {                      // a handheld USB/Bluetooth scanner types the code and presses Enter
     if (e.key !== 'Enter') return;
@@ -709,15 +736,55 @@ function scanCounters() {
   const c = dayCount(U.scanSec, today()), el = $('#cnt'); if (!el) return;
   el.innerHTML = `<div class="tile p"><b>${c.P + c.L}</b><span>Present</span></div>${U.mode === 'gate' ? `<div class="tile o"><b>${c.out}</b><span>Outside now</span></div>` : `<div class="tile l"><b>${c.L}</b><span>Late</span></div>`}<div class="tile a"><b>${c.A + c.E}</b><span>Not yet in</span></div>`;
 }
+/* Camera choice: back (environment) or front (user); remembered on this phone. */
+let camFacing = LS.get('cam', 'environment'), camDevice = '';
+const flipLabel = () => { const l = $('#flipL'); if (l) l.textContent = camFacing === 'user' ? 'Front camera' : 'Back camera'; const f = $('#shot'); if (f) f.setAttribute('capture', camFacing); };
+async function openCam(prefDevice) {
+  const tries = [];
+  if (prefDevice) tries.push({ deviceId: { exact: prefDevice } });
+  tries.push({ facingMode: { exact: camFacing } }, { facingMode: { ideal: camFacing } }, true);
+  let last;
+  for (const t of tries) {
+    try { return await navigator.mediaDevices.getUserMedia({ video: t, audio: false }); }
+    catch (e) { last = e; if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e; }
+  }
+  throw last;
+}
+function showVideo() {
+  const v = $('#vid'), tr = cam && cam.getVideoTracks()[0], st = tr && tr.getSettings ? tr.getSettings() : {};
+  camDevice = st.deviceId || '';
+  if (st.facingMode === 'user' || st.facingMode === 'environment') camFacing = st.facingMode;
+  v.style.transform = camFacing === 'user' ? 'scaleX(-1)' : '';          // front camera shows like a mirror
+  v.srcObject = cam; v.setAttribute('playsinline', ''); v.muted = true;
+  flipLabel();
+  return v.play().catch(() => {});
+}
+async function switchCam() {
+  const before = camDevice;
+  camFacing = camFacing === 'user' ? 'environment' : 'user'; LS.set('cam', camFacing); flipLabel();
+  if (!cam) return toast(camFacing === 'user' ? 'Front camera will be used.' : 'Back camera will be used.');
+  try {
+    cam.getTracks().forEach(t => t.stop()); cam = null;
+    cam = await openCam();
+    let id = (cam.getVideoTracks()[0].getSettings() || {}).deviceId;
+    if (before && id === before && navigator.mediaDevices.enumerateDevices) {   // device ignored facingMode → pick the next camera
+      const vids = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+      if (vids.length > 1) {
+        const next = vids[(vids.findIndex(d => d.deviceId === before) + 1) % vids.length].deviceId;
+        cam.getTracks().forEach(t => t.stop()); cam = await openCam(next);
+      }
+    }
+    await showVideo();
+    toast(camFacing === 'user' ? 'Front camera' : 'Back camera');
+  } catch (e) { showRes('bad', '!', 'Could not switch camera', String(e && (e.message || e.name) || e)); }
+}
 async function startCam() {
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
   if ('BarcodeDetector' in window && !detector) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { detector = null; } }
   try {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw { name: 'NoApi' };
-    try { cam = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); }
-    catch (e1) { if (e1 && (e1.name === 'NotAllowedError' || e1.name === 'SecurityError')) throw e1; cam = await navigator.mediaDevices.getUserMedia({ video: true }); }
-    const v = $('#vid'); v.srcObject = cam; v.setAttribute('playsinline', ''); v.muted = true;
-    try { await v.play(); } catch (e2) {}
+    cam = await openCam();
+    await showVideo();
     $('#start').hidden = true; scanOn = true; tick();
   } catch (e) {
     const n = (e && e.name) || 'Error';
@@ -1215,7 +1282,7 @@ function vMore() {
       ${S.sheetUrl ? `<a class="btn ghost" style="display:block;margin-top:8px" href="${esc(S.sheetUrl)}" target="_blank" rel="noopener">Open the Google Sheet</a>` : ''}</div>
     <div class="card"><b>${esc(S.school)}</b><div class="note">SY ${esc(S.sy)}<br>School Head: ${esc(S.principal || '—')} · LIS Coordinator: ${esc(S.lis || '—')}</div>
       <button class="btn ghost" id="mOut" style="width:100%;margin-top:10px">Log out</button></div>
-    <p class="note" style="text-align:center">NARITO works without internet once opened. Keep this page open while scanning offline; scans sync by themselves when the signal returns.</p>
+    <p class="note" style="text-align:center">${APP_V} · NARITO works without internet once opened. Keep this page open while scanning offline; scans sync by themselves when the signal returns.</p>
     <p class="note" style="text-align:center;margin-top:14px"><b style="color:var(--ink);letter-spacing:.1em">NARITO</b> · <i>Bawat pagdalo, binibilang. Bawat pagliban, tinutugunan.</i><br>Developed by <b style="color:var(--ink)">Joy P. Bacala</b>, Teacher I · Samal Senior High School</p>`;
   $('#qGo').onclick = () => pickIds($('#qSec').value);
   $('#mSch').onclick = schoolSchedule;
