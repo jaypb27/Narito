@@ -1,6 +1,6 @@
 /* NARITO service worker — lets the app open and scan with no internet.
    Change the version below whenever you upload a new index.html. */
-const VERSION = 'narito-v8';
+const VERSION = 'narito-v9';
 const LOCAL = ['./', './index.html', './config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 const REMOTE = [
   './logo-deped.png', './logo-school.png',
